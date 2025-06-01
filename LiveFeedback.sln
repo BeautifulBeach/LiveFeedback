@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36109.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveFeedback", "LiveFeedback\LiveFeedback.csproj", "{6F6B45A9-F06B-42D6-ACC9-CB439D5D3891}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6F6B45A9-F06B-42D6-ACC9-CB439D5D3891}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F6B45A9-F06B-42D6-ACC9-CB439D5D3891}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F6B45A9-F06B-42D6-ACC9-CB439D5D3891}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F6B45A9-F06B-42D6-ACC9-CB439D5D3891}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5D452D8A-D215-492C-8FB8-1E79473FA539}
+	EndGlobalSection
+EndGlobal

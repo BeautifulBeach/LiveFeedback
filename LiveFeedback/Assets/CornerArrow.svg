@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="97.709267mm"
+   height="15.677424mm"
+   viewBox="0 0 97.709267 15.677424"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="ConcaveTriangle"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.7)"
+         d="M -2,-4 9,0 -2,4 c 2,-2.33 2,-5.66 0,-8 z"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:none"
+         id="path7" />
+    </marker>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-2.2330228,-2.1612878)">
+    <path
+       style="fill:none;stroke:none;stroke-width:2.79954;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#ConcaveTriangle);paint-order:stroke markers fill"
+       d="m 2.233023,10 h 80.072164 v 0"
+       id="path1" />
+  </g>
+</svg>

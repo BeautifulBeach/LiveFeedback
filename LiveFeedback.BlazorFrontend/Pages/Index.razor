@@ -1,0 +1,97 @@
+@page "/"
+@using LiveFeedback.BlazorFrontend.Serivces
+@using LiveFeedback.Shared.Models
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.JSInterop
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime;
+
+<main>
+    <div class="slider-box">
+        <input id="slider" type="range" min="0" max="100" @bind="_sliderValue" oninput="@HandleSliderChange"/>
+    </div>
+    <div class="slider-value">
+        @_sliderValue %
+    </div>
+    <button class="exit-btn">Teilnahme beenden</button>
+</main>
+
+@code {
+    private ushort _sliderValue = Shared.Constants.DefaultRating;
+    private HubConnection _hubConnection = null!;
+    private bool _isConnected;
+    private string _clientId = "";
+    private string _lectureId = "";
+    private readonly SignalRService _signalRService = new SignalRService();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Uri uri = NavigationManager.ToAbsoluteUri("/slider-hub");
+        _clientId = await GetLocalStorage("clientId") ?? "";
+        _lectureId = await GetLocalStorage("lectureId") ?? "";
+        Dictionary<string, string?> queryParams = new()
+        {
+            { "group", "default" },
+            { "clientId", _clientId },
+        };
+        string url = QueryHelpers.AddQueryString(uri.ToString(), queryParams);
+
+        if (firstRender && !_isConnected)
+        {
+            _isConnected = true;
+            // Do NOT enable automatic reconnect, it causes weird bugs
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(url)
+                .Build();
+
+            // Message from the server for the frontend to report its client ID so it can be attached to future requests
+            _hubConnection.On<string>(Shared.Messages.PersistClientId, async (id) =>
+            {
+                await SetLocalStorage("clientId", id);
+                _clientId = id;
+            });
+            _hubConnection.On<string>(Shared.Messages.PersistLectureId, async (id) =>
+            {
+                await SetLocalStorage("lectureId", id);
+                _lectureId = id;
+            });
+
+            await _hubConnection.StartAsync();
+            _sliderValue = ushort.Parse(await GetLocalStorage("lastRating") ?? Shared.Constants.DefaultRating.ToString());
+            StateHasChanged();
+        }
+        await SendRatingToServer(_sliderValue);
+    }
+
+    private async Task HandleSliderChange(ChangeEventArgs e)
+    {
+        _sliderValue = ushort.TryParse(e.Value?.ToString(), out ushort newValue) ? newValue : _sliderValue;
+        await SendRatingToServer(_sliderValue);
+        await SetLocalStorage("lastRating", _sliderValue.ToString());
+    }
+
+    private async Task SendRatingToServer(ushort rating)
+    {
+        try
+        {
+            MessageCarrier<ushort> message = new(_clientId, rating);
+            await _hubConnection.InvokeAsync("RatingReport", message);
+        }
+        catch (Exception err)
+        {
+            Console.WriteLine($"Error on the Client: {err.Message}");
+        }
+    }
+
+    private async Task SetLocalStorage(string key, string value)
+    {
+        await JsRuntime.InvokeVoidAsync("localStorage.setItem", key, value);
+    }
+
+    private async Task<string?> GetLocalStorage(string key)
+    {
+        return await JsRuntime.InvokeAsync<string>("localStorage.getItem", key);
+    }
+
+}

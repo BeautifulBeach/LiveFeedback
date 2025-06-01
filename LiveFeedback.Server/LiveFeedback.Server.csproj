@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <ItemGroup>
+      <ProjectReference Include="..\LiveFeedback.BlazorFrontend\LiveFeedback.BlazorFrontend.csproj" />
+      <ProjectReference Include="..\LiveFeedback.Shared\LiveFeedback.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\Enums\" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+</Project>

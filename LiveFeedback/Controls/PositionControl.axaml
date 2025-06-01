@@ -1,0 +1,73 @@
+<UserControl
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="clr-namespace:LiveFeedback.ViewModels"
+    x:DataType="vm:PositionSelectorViewModel"
+    x:Class="LiveFeedback.Controls.PositionControl">
+
+    <UserControl.Styles>
+        <Style Selector="Button.CornerButton">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+        </Style>
+        <Style Selector="Button:pointerover">
+            <Setter Property="Background" Value="Red" />
+        </Style>
+        
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{TemplateBinding Background}" />
+        </Style>
+        <Style Selector="Button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{TemplateBinding Background}" />
+        </Style>
+
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="Auto, *, Auto" >
+        <TextBlock Grid.Column="0" Text="Position des Overlays: " VerticalAlignment="Center" />
+        <Grid Grid.Column="2" Width="226" Height="126" >
+            <!-- Monitor background -->
+            <Border Background="Black" CornerRadius="8" BorderBrush="Black" BorderThickness="2" />
+            <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
+
+                <!-- Top-Left Button -->
+                <Button Grid.Row="0" Grid.Column="0" Classes="CornerButton"
+                        Command="{Binding SelectCornerCommand}"
+                        CommandParameter="tl"
+                        Background="{Binding TlBtnColor}"
+                        CornerRadius="8,0,0,0">
+                    <Svg Path="/Assets/CornerArrow-white-tl.svg" />
+                </Button>
+                
+                <!-- Top-Right Button -->
+                <Button Grid.Row="0" Grid.Column="2" Classes="CornerButton"
+                        Command="{Binding SelectCornerCommand}"
+                        CommandParameter="tr"
+                        Background="{Binding TrBtnColor}"
+                        CornerRadius="0,8,0,0">
+                    <Svg Path="/Assets/CornerArrow-white-tr.svg" />
+                </Button>
+                
+                <!-- Bottom-Left Button -->
+                <Button Grid.Row="2" Grid.Column="0" Classes="CornerButton"
+                        Command="{Binding SelectCornerCommand}"
+                        CommandParameter="bl"
+                        Background="{Binding BlBtnColor}"
+                        CornerRadius="0,0,0,8">
+                    <Svg Path="/Assets/CornerArrow-white-bl.svg" />
+                </Button>
+                
+                <!-- Bottom-Right Button -->
+                <Button Grid.Row="2" Grid.Column="2" Classes="CornerButton"
+                        Command="{Binding SelectCornerCommand}"
+                        Background="{Binding BrBtnColor}"
+                        CommandParameter="br"
+                        CornerRadius="0,0,8,0">
+                    <Svg Path="/Assets/CornerArrow-white-br.svg" />
+                </Button>
+
+            </Grid>
+        </Grid>
+    </Grid>
+
+</UserControl>
