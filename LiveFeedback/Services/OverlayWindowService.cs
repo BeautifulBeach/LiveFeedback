@@ -12,10 +12,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
 
-public class OverlayWindowService(IServiceProvider serviceProvider)
+public class OverlayWindowService()
 {
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
-
     private List<OverlayWindow> _overlayWindowsOpened = [];
 
     public async Task ShowWindowOnAllScreensAsync(OverlayPosition overlayPosition = OverlayPosition.BottomRight)
@@ -33,8 +31,10 @@ public class OverlayWindowService(IServiceProvider serviceProvider)
 
         foreach (Screen screen in screens)
         {
-            var window = _serviceProvider.GetRequiredService<OverlayWindow>();
-            window.DataContext = _serviceProvider.GetRequiredService<OverlayWindowViewModel>();
+            OverlayWindow? window = Program.Services.GetService<OverlayWindow>();
+            if (window == null)
+                throw new NullReferenceException("OverlayWindow is null");
+            window.DataContext = Program.Services.GetRequiredService<OverlayWindowViewModel>();
             window.WindowStartupLocation = WindowStartupLocation.Manual;
             window.Position = CalculateWindowPosition(overlayPosition, screen, window);
             window.Show();
