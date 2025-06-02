@@ -2,8 +2,6 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using LiveFeedback.Services;
-using ReactiveUI;
 
 namespace LiveFeedback.Converters;
 
@@ -19,7 +17,7 @@ public class ColorConverter : IValueConverter
         double normalized = v / 100.0;
 
         // Color stops
-        var stops = new Color[]
+        Color[] stops = new[]
         {
             Color.FromArgb(255, 0, 50, 255),
             Color.FromArgb(255, 0, 200, 180),

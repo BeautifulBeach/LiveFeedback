@@ -1,33 +1,43 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using LiveFeedback.Core;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Models;
-using LiveFeedback.Views;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
-using Splat;
 
 namespace LiveFeedback.ViewModels;
 
 public class MainWindowViewModel : ReactiveObject
 {
     private readonly AppState _appState;
-    private readonly ServerService _serverService;
-    private readonly OverlayWindowService _overlayWindowService;
-    private readonly ILogger<App> _logger;
     private readonly GlobalConfig _globalConfig;
     private readonly LocalConfig _localConfig;
+    private readonly ILogger<App> _logger;
+    private readonly OverlayWindowService _overlayWindowService;
+    private readonly ServerService _serverService;
+
+
+    private int _connectedClients;
+    
+    private ComprehensibilityInformation _currentComprehensibility;
+
+    private string _currentFrontendUrl;
+
+    private ServerState _currentServerState = ServerState.Stopped;
+
+    private bool _isRunning;
+
+    private ushort _minimalUserCount;
+    
+    private Sensitivity _selectedSensitivity;
 
     public MainWindowViewModel(ServerService serverService, AppState appState,
-        OverlayWindowService overlayWindowService, ILogger<App> logger, GlobalConfig globalConfig, LocalConfig localConfig)
+        OverlayWindowService overlayWindowService, ILogger<App> logger, GlobalConfig globalConfig,
+        LocalConfig localConfig)
     {
         _globalConfig = globalConfig;
         _localConfig = localConfig;
@@ -37,10 +47,10 @@ public class MainWindowViewModel : ReactiveObject
         _overlayWindowService = overlayWindowService;
         _selectedSensitivity = _localConfig.Sensitivity;
         _minimalUserCount = _localConfig.MinimalUserCount;
-        _currentComprehensibility = new ComprehensibilityInformation()
+        _currentComprehensibility = new ComprehensibilityInformation
         {
             UsersInvolved = 0,
-            OverallRating = Shared.Constants.DefaultRating,
+            OverallRating = Constants.DefaultRating,
             IndividualRatings = []
         };
         _currentFrontendUrl = $"http://{_globalConfig.ServerHost}:{_globalConfig.ServerPort}";
@@ -85,17 +95,11 @@ public class MainWindowViewModel : ReactiveObject
 
     public ObservableCollection<Sensitivity> Items { get; } = [Sensitivity.High, Sensitivity.Medium, Sensitivity.Low];
 
-
-    private ServerState _currentServerState = ServerState.Stopped;
-
     public ServerState CurrentServerState
     {
         get => _currentServerState;
         set => this.RaiseAndSetIfChanged(ref _currentServerState, value);
     }
-
-
-    private ushort _minimalUserCount;
 
     public ushort MinimalUserCount
     {
@@ -107,16 +111,11 @@ public class MainWindowViewModel : ReactiveObject
         }
     }
 
-
-    private int _connectedClients;
     public int ConnectedClients
     {
         get => _connectedClients;
         set => this.RaiseAndSetIfChanged(ref _connectedClients, value);
     }
-
-
-    private ComprehensibilityInformation _currentComprehensibility;
 
     public ComprehensibilityInformation CurrentComprehensibility
     {
@@ -124,24 +123,17 @@ public class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _currentComprehensibility, value);
     }
 
-
-    private Sensitivity _selectedSensitivity;
-
     public Sensitivity SelectedSensitivity
     {
         get => _selectedSensitivity;
         set => this.RaiseAndSetIfChanged(ref _selectedSensitivity, value);
     }
 
-    private string _currentFrontendUrl;
-
     public string CurrentFrontendUrl
     {
         get => _currentFrontendUrl;
         set => this.RaiseAndSetIfChanged(ref _currentFrontendUrl, value);
     }
-
-    private bool _isRunning;
 
     public bool IsRunning
     {
@@ -154,7 +146,7 @@ public class MainWindowViewModel : ReactiveObject
         switch (_appState.ServerState)
         {
             case ServerState.Stopped:
-                Console.WriteLine("User wants server to be started");
+                _logger.LogDebug("User wants server to be started");
                 _appState.ServerState = ServerState.Starting;
                 // Starts server and overlay parallel
                 await Task.WhenAll(_serverService.StartServerAsync(),
@@ -162,7 +154,7 @@ public class MainWindowViewModel : ReactiveObject
                 _appState.ServerState = ServerState.Running;
                 break;
             case ServerState.Running:
-                Console.WriteLine("User wants server to be stoped");
+                _logger.LogDebug("User wants server to be stoped");
                 _appState.ServerState = ServerState.Stopping;
                 // Stops server and overlay parallel
                 await Task.WhenAll(_serverService.StopServerAsync(),

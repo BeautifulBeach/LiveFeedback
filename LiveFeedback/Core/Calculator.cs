@@ -8,7 +8,8 @@ namespace LiveFeedback.Core;
 public static class Calculator
 {
     // This is the point where calculation of sensitivity settings happens
-    public static ComprehensibilityInformation CalculateComprehensibilityWithSensitivity(ComprehensibilityInformation info, AppState appState)
+    public static ComprehensibilityInformation CalculateComprehensibilityWithSensitivity(
+        ComprehensibilityInformation info, AppState appState)
     {
         // how many individual ratings we have
         int count = info.IndividualRatings?.Length ?? 0;

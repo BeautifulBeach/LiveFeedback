@@ -13,7 +13,7 @@
         <Style Selector="Button:pointerover">
             <Setter Property="Background" Value="Red" />
         </Style>
-        
+
         <Style Selector="Button:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{TemplateBinding Background}" />
         </Style>
@@ -23,9 +23,9 @@
 
     </UserControl.Styles>
 
-    <Grid ColumnDefinitions="Auto, *, Auto" >
+    <Grid ColumnDefinitions="Auto, *, Auto">
         <TextBlock Grid.Column="0" Text="Position des Overlays: " VerticalAlignment="Center" />
-        <Grid Grid.Column="2" Width="226" Height="126" >
+        <Grid Grid.Column="2" Width="226" Height="126">
             <!-- Monitor background -->
             <Border Background="Black" CornerRadius="8" BorderBrush="Black" BorderThickness="2" />
             <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
@@ -38,7 +38,7 @@
                         CornerRadius="8,0,0,0">
                     <Svg Path="/Assets/CornerArrow-white-tl.svg" />
                 </Button>
-                
+
                 <!-- Top-Right Button -->
                 <Button Grid.Row="0" Grid.Column="2" Classes="CornerButton"
                         Command="{Binding SelectCornerCommand}"
@@ -47,7 +47,7 @@
                         CornerRadius="0,8,0,0">
                     <Svg Path="/Assets/CornerArrow-white-tr.svg" />
                 </Button>
-                
+
                 <!-- Bottom-Left Button -->
                 <Button Grid.Row="2" Grid.Column="0" Classes="CornerButton"
                         Command="{Binding SelectCornerCommand}"
@@ -56,7 +56,7 @@
                         CornerRadius="0,0,0,8">
                     <Svg Path="/Assets/CornerArrow-white-bl.svg" />
                 </Button>
-                
+
                 <!-- Bottom-Right Button -->
                 <Button Grid.Row="2" Grid.Column="2" Classes="CornerButton"
                         Command="{Binding SelectCornerCommand}"

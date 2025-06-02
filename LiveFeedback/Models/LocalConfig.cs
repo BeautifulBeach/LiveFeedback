@@ -2,36 +2,49 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using LiveFeedback;
-using LiveFeedback.Models;
 using LiveFeedback.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Environment = System.Environment;
 
+namespace LiveFeedback.Models;
+
 public class LocalConfig
 {
-    [JsonIgnore]
-    private readonly ILogger<App> _logger;
-    [JsonIgnore]
-    private readonly string _configDir;
-    [JsonIgnore]
-    private readonly string _configPath;
-    [JsonIgnore]
-    private bool _initialized = false;
-    [JsonIgnore]
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions()
+    [JsonIgnore] private readonly string _configDir;
+    [JsonIgnore] private readonly string _configPath;
+
+    [JsonIgnore] private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         WriteIndented = true,
-        IncludeFields = true,
+        IncludeFields = true
     };
+
+    [JsonIgnore] private readonly ILogger<App> _logger;
+    [JsonIgnore] private bool _initialized;
+
+    public LocalConfig()
+    {
+        _logger = Program.Services.GetRequiredService<ILogger<App>>();
+        _configDir = GetConfigDirectory();
+        if (!Directory.Exists(_configDir))
+        {
+            Directory.CreateDirectory(_configDir);
+        }
+
+        _configPath = Path.Combine(_configDir, "liveFeedbackConf.json");
+        if (!File.Exists(_configPath))
+        {
+            using (File.Create(_configPath))
+            {
+            }
+        }
+    }
 
     public ushort MinimalUserCount { get; set; } = 10;
     public PixelPoint LastOverlayPosition { get; set; }
@@ -40,19 +53,6 @@ public class LocalConfig
     public Sensitivity Sensitivity { get; set; } = Sensitivity.High;
     public List<ExternalServerConfig> ExternalServers { get; set; } = [];
 
-    public LocalConfig()
-    {
-        _logger = Program.Services.GetRequiredService<ILogger<App>>();
-        _configDir = GetConfigDirectory();
-        if (!Directory.Exists(_configDir))
-            Directory.CreateDirectory(_configDir);
-        _configPath = Path.Combine(_configDir, "liveFeedbackConf.json");
-        if (!File.Exists(_configPath))
-            using (File.Create(_configPath))
-            {
-            }
-    }
-
     public async Task Initialize()
     {
         try
@@ -60,14 +60,14 @@ public class LocalConfig
             string configFileContent = await File.ReadAllTextAsync(_configPath);
             if (string.IsNullOrEmpty(configFileContent))
             {
-                this.Update(new LocalConfig());
+                Update(new LocalConfig());
                 await PersistConfig(new LocalConfig());
                 _logger.LogInformation("Created initial config file at {Path}", _configPath);
                 return;
             }
 
-            this.Update(JsonSerializer.Deserialize<LocalConfig>(configFileContent, _jsonSerializerOptions) ??
-                        new LocalConfig());
+            Update(JsonSerializer.Deserialize<LocalConfig>(configFileContent, _jsonSerializerOptions) ??
+                   new LocalConfig());
             _initialized = true;
         }
         catch (Exception e)
@@ -103,31 +103,30 @@ public class LocalConfig
         foreach (PropertyInfo prop in typeof(LocalConfig).GetProperties())
         {
             if (prop.CanWrite)
+            {
                 prop.SetValue(this, prop.GetValue(newConfig));
+            }
         }
     }
 
     private static string GetConfigDirectory()
     {
-        string configDirectoryPath;
+        string configDirectoryPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (!string.IsNullOrEmpty(configDirectoryPath))
         {
-            configDirectoryPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(configDirectoryPath, "LiveFeedback");
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
+        configDirectoryPath = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") ?? "";
+
+        if (!string.IsNullOrEmpty(configDirectoryPath))
         {
-            configDirectoryPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            return Path.Combine(configDirectoryPath, "LiveFeedback");
         }
-        else
-        {
-            configDirectoryPath = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME") ?? "";
-            if (string.IsNullOrEmpty(configDirectoryPath))
-            {
-                string userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                configDirectoryPath = Path.Combine(userHome, ".config");
-            }
-        }
+
+        string userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        configDirectoryPath = Path.Combine(userHome, ".config");
 
         return Path.Combine(configDirectoryPath, "LiveFeedback");
     }

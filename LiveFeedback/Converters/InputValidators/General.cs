@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 
 namespace LiveFeedback.Converters.InputValidators;
@@ -17,6 +16,7 @@ public class General
             e.Handled = true; // blocks further processing
             return;
         }
+
         string text;
         switch (sender)
         {
@@ -47,7 +47,7 @@ public class General
                 e.Handled = true;
                 return;
         }
-        
+
         if (!IsValidNumber<T>(text))
         {
             e.Handled = true; // break

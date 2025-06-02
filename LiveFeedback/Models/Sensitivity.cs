@@ -4,5 +4,5 @@ public enum Sensitivity
 {
     High,
     Medium,
-    Low,
+    Low
 }

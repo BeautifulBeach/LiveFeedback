@@ -1,8 +1,9 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
+using LiveFeedback.Models;
 using LiveFeedback.Services;
+using LiveFeedback.Shared;
 using LiveFeedback.ViewModels;
 using LiveFeedback.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +40,7 @@ internal sealed class Program
 
     private static void ConfigureServices()
     {
-        Shared.GlobalConfig globalConfig = new();
+        GlobalConfig globalConfig = new();
         ServiceCollection serviceCollection = [];
         serviceCollection.AddSingleton(globalConfig);
         serviceCollection.AddLogging(builder =>

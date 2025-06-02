@@ -12,20 +12,24 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
 
-public class OverlayWindowService()
+public class OverlayWindowService
 {
-    private List<OverlayWindow> _overlayWindowsOpened = [];
+    private readonly List<OverlayWindow> _overlayWindowsOpened = [];
 
     public async Task ShowWindowOnAllScreensAsync(OverlayPosition overlayPosition = OverlayPosition.BottomRight)
     {
-        var desktopLifetime =
-            Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        IClassicDesktopStyleApplicationLifetime? desktopLifetime =
+            Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         if (desktopLifetime == null)
+        {
             return;
+        }
 
         Window? mainWindow = desktopLifetime.MainWindow;
         if (mainWindow == null)
+        {
             return;
+        }
 
         IReadOnlyList<Screen> screens = mainWindow.Screens.All;
 
@@ -33,7 +37,10 @@ public class OverlayWindowService()
         {
             OverlayWindow? window = Program.Services.GetService<OverlayWindow>();
             if (window == null)
+            {
                 throw new NullReferenceException("OverlayWindow is null");
+            }
+
             window.DataContext = Program.Services.GetRequiredService<OverlayWindowViewModel>();
             window.WindowStartupLocation = WindowStartupLocation.Manual;
             window.Position = CalculateWindowPosition(overlayPosition, screen, window);
@@ -49,6 +56,7 @@ public class OverlayWindowService()
         {
             window.Close();
         }
+
         await Task.CompletedTask;
     }
 

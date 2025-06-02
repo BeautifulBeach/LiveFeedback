@@ -1,16 +1,21 @@
 using System;
-using System.Net.Mime;
-using Avalonia.Media;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
 using ReactiveUI;
 
 namespace LiveFeedback.ViewModels;
 
-
-public class PositionSelectorViewModel: ReactiveObject
+public class PositionSelectorViewModel : ReactiveObject
 {
     private readonly AppState _appState;
+
+    private string _blBtnColor;
+
+    private string _brBtnColor;
+
+    private string _tlBtnColor;
+
+    private string _trBtnColor;
 
     public PositionSelectorViewModel(AppState appState)
     {
@@ -21,33 +26,30 @@ public class PositionSelectorViewModel: ReactiveObject
         _blBtnColor = BtnColor("bl");
     }
 
-    private string _trBtnColor;
     public string TrBtnColor
     {
         get => _trBtnColor;
         set => this.RaiseAndSetIfChanged(ref _trBtnColor, value);
     }
-    
-    private string _tlBtnColor;
+
     public string TlBtnColor
     {
         get => _tlBtnColor;
         set => this.RaiseAndSetIfChanged(ref _tlBtnColor, value);
     }
-    
-    private string _blBtnColor;
+
     public string BlBtnColor
     {
         get => _blBtnColor;
         set => this.RaiseAndSetIfChanged(ref _blBtnColor, value);
     }
-    
-    private string _brBtnColor;
+
     public string BrBtnColor
     {
         get => _brBtnColor;
         set => this.RaiseAndSetIfChanged(ref _brBtnColor, value);
     }
+
     public void SelectCornerCommand(string corner)
     {
         DeactivateAnyButton();

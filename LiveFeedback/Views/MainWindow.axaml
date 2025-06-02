@@ -17,7 +17,6 @@
         Title="LiveFeedback">
 
     <Window.Resources>
-        <conv:ColorConverter x:Key="ColorConverter" />
         <conv:SensitivityEnumStringConverter x:Key="SensitivityEnumStringConverter" />
         <conv:ServerStateConverter x:Key="ServerStateConverter" />
         <conv:BoolToGridLengthConverter x:Key="BoolToGridLengthConverter" />
@@ -60,7 +59,8 @@
                             <Label Grid.Column="0" Grid.Row="0" Width="NaN" VerticalAlignment="Center">Mindesteilnehmerzahl:</Label>
                             <TextBox Grid.Column="2" Grid.Row="0" x:Name="MinimalUserCountInput" TextAlignment="Center"
                                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                                     Text="{Binding MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="120"
+                                     Text="{Binding MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="120"
                                      CornerRadius="5"
                                      VerticalContentAlignment="Center"
                                      HorizontalContentAlignment="Center" />
@@ -84,7 +84,8 @@
                         </Grid>
                     </Border>
                     <!-- Right part, Section 2, only visible when stoped -->
-                    <Border Grid.Row="1" IsVisible="{Binding !IsRunning}" Classes="section" Padding="20" CornerRadius="5">
+                    <Border Grid.Row="1" IsVisible="{Binding !IsRunning}" Classes="section" Padding="20"
+                            CornerRadius="5">
                         <controls:PositionControl />
                     </Border>
 

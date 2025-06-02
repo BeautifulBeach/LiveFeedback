@@ -8,13 +8,17 @@ namespace LiveFeedback.Services;
 /* ServerService is meant to store the LiveFeedback.Server instance, for starting it and shutting it down (local mode).
    Furthermore, it is meant to start the signalR connection */
 
-public class ServerService(SignalRService signalRService, ILogger<App> logger, AppState appState, GlobalConfig globalConfig)
+public class ServerService(
+    SignalRService signalRService,
+    ILogger<App> logger,
+    AppState appState,
+    GlobalConfig globalConfig)
 {
-    private readonly LiveFeedback.Server.Server _server = new();
     private readonly AppState _appState = appState;
-    private readonly ILogger<App> _logger = logger;
-    private readonly SignalRService _signalRService = signalRService;
     private readonly GlobalConfig _globalConfig = globalConfig;
+    private readonly ILogger<App> _logger = logger;
+    private readonly Server.Server _server = new();
+    private readonly SignalRService _signalRService = signalRService;
 
     public async Task StartServerAsync()
     {

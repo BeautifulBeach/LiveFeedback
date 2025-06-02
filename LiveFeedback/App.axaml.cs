@@ -1,13 +1,10 @@
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
-using LiveFeedback.ViewModels;
 using LiveFeedback.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,8 +13,8 @@ namespace LiveFeedback;
 
 public class App : Application
 {
-    private readonly ServerService? _serverService = Program.Services.GetService<ServerService>();
     private readonly ILogger<App> _logger = Program.Services.GetService<ILogger<App>>()!;
+    private readonly ServerService? _serverService = Program.Services.GetService<ServerService>();
 
 
     public override void Initialize()
@@ -35,11 +32,15 @@ public class App : Application
 
             desktop.Exit += async (sender, e) =>
             {
-                if (_serverService == null || Program.Services.GetService<AppState>()?.ServerState != ServerState.Running)
+                if (_serverService == null ||
+                    Program.Services.GetService<AppState>()?.ServerState != ServerState.Running)
+                {
                     return;
+                }
+
                 await _serverService.StopServerAsync();
             };
-            
+
             desktop.MainWindow = Program.Services.GetRequiredService<MainWindow>();
         }
 
