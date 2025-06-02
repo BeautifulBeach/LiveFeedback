@@ -18,10 +18,10 @@ internal sealed class Program
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         ConfigureServices();
-        //await Services.GetRequiredService<LocalConfig>().Initialize();
+        await Services.GetRequiredService<LocalConfig>().Initialize();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
@@ -50,12 +50,12 @@ internal sealed class Program
         serviceCollection.AddSingleton<MainWindow>();
         serviceCollection.AddSingleton<LocalConfig>();
         serviceCollection.AddSingleton<MainWindowViewModel>();
-        serviceCollection.AddSingleton<OverlayWindowViewModel>();
         serviceCollection.AddTransient<OverlayWindow>();
+        serviceCollection.AddSingleton<OverlayWindowViewModel>();
+        serviceCollection.AddSingleton<OverlayWindowService>();
         serviceCollection.AddSingleton<SignalRService>();
         serviceCollection.AddSingleton<ServerService>();
         serviceCollection.AddSingleton<AppState>();
-        serviceCollection.AddSingleton<OverlayWindowService>();
         serviceCollection.AddSingleton<PositionSelectorViewModel>();
 
         Services = serviceCollection.BuildServiceProvider();
