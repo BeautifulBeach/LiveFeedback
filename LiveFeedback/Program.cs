@@ -13,7 +13,7 @@ namespace LiveFeedback;
 
 internal sealed class Program
 {
-    public static IServiceProvider Services { get; private set; } = null!;
+    public static readonly IServiceProvider Services = ConfigureServices();
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -21,7 +21,6 @@ internal sealed class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
-        ConfigureServices();
         await Services.GetRequiredService<LocalConfig>().Initialize();
 
         BuildAvaloniaApp()
@@ -38,27 +37,26 @@ internal sealed class Program
             .LogToTrace();
     }
 
-    private static void ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         GlobalConfig globalConfig = new();
-        ServiceCollection serviceCollection = [];
-        serviceCollection.AddSingleton(globalConfig);
-        serviceCollection.AddLogging(builder =>
+        ServiceCollection services = [];
+        services.AddSingleton(globalConfig);
+        services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Information);
         });
-        serviceCollection.AddSingleton<MainWindow>();
-        serviceCollection.AddSingleton<LocalConfig>();
-        serviceCollection.AddSingleton<MainWindowViewModel>();
-        serviceCollection.AddTransient<OverlayWindow>();
-        serviceCollection.AddSingleton<OverlayWindowViewModel>();
-        serviceCollection.AddSingleton<OverlayWindowService>();
-        serviceCollection.AddSingleton<SignalRService>();
-        serviceCollection.AddSingleton<ServerService>();
-        serviceCollection.AddSingleton<AppState>();
-        serviceCollection.AddSingleton<PositionSelectorViewModel>();
-
-        Services = serviceCollection.BuildServiceProvider();
+        services.AddSingleton<LocalConfig>();
+        services.AddSingleton<MainWindow>();
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddTransient<OverlayWindow>();
+        services.AddSingleton<OverlayWindowViewModel>();
+        services.AddSingleton<OverlayWindowService>();
+        services.AddSingleton<SignalRService>();
+        services.AddSingleton<ServerService>();
+        services.AddSingleton<AppState>();
+        services.AddSingleton<PositionSelectorViewModel>();
+        return services.BuildServiceProvider();
     }
 }
