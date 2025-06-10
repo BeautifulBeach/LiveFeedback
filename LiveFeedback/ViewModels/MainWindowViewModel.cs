@@ -62,12 +62,10 @@ public class MainWindowViewModel : ReactiveObject
                 CurrentFrontendUrl = $"http://{_globalConfig.ServerHost}:{_globalConfig.ServerPort}";
                 if (newServerState == ServerState.Running)
                 {
-                    Console.WriteLine("IsRunning = true");
                     IsRunning = true;
                 }
                 else if (newServerState == ServerState.Stopped)
                 {
-                    Console.WriteLine("IsRunning = false");
                     IsRunning = false;
                 }
             });

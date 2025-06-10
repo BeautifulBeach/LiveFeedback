@@ -1,3 +1,5 @@
+using System.Text.Json;
+using dotenv.net;
 using LiveFeedback.Shared.Enums;
 using Environment = LiveFeedback.Shared.Enums.Environment;
 
@@ -13,6 +15,9 @@ public class GlobalConfig
 
     public GlobalConfig()
     {
+#if DEBUG
+        DotEnv.Load(new DotEnvOptions(probeForEnv: false, envFilePaths: [".env", "../.env"]));
+#endif
         string mode = Functions.EnvOrDefault(Constants.ModeEnvName, "local");
         string serverHost =
             Functions.EnvOrDefault(Constants.ServerHostEnvName, Functions.GetLocalNetworkIpAddress().ToString());
@@ -30,12 +35,12 @@ public class GlobalConfig
 
         string wwwRootPath = Functions.EnvOrDefault(Constants.WwwRootPathEnvName, "/");
 
-        this.Mode = mode == "distributed" ? Enums.Mode.Distributed : Enums.Mode.Local;
-        this.ServerHost = serverHost;
-        this.Environment = environment.ToLower() is "dev" or "development"
+        Mode = mode == "distributed" ? Enums.Mode.Distributed : Enums.Mode.Local;
+        ServerHost = serverHost;
+        Environment = environment.ToLower() is "dev" or "development"
             ? Environment.Development
             : Environment.Production;
-        this.ServerPort = serverPort;
-        this.WwwRootPath = Functions.GetWwwRoot();
+        ServerPort = serverPort;
+        WwwRootPath = Functions.GetWwwRoot();
     }
 }

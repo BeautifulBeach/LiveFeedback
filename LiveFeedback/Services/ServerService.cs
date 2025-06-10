@@ -17,7 +17,7 @@ public class ServerService(
     private readonly AppState _appState = appState;
     private readonly GlobalConfig _globalConfig = globalConfig;
     private readonly ILogger<App> _logger = logger;
-    private readonly Server.Server _server = new();
+    private readonly LiveFeedback.Server.Server _server = new();
     private readonly SignalRService _signalRService = signalRService;
 
     public async Task StartServerAsync()
