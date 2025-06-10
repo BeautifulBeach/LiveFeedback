@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
-using LiveFeedback.Shared.Models;
 
-namespace LiveFeedback.Server.Models;
+namespace LiveFeedback.Shared.Models;
 
 public class Lecture
 {

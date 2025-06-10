@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using LiveFeedback.Shared;
+using LiveFeedback.Shared.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace LiveFeedback.Services;
@@ -15,7 +16,6 @@ public class ServerService(
     GlobalConfig globalConfig)
 {
     private readonly AppState _appState = appState;
-    private readonly GlobalConfig _globalConfig = globalConfig;
     private readonly ILogger<App> _logger = logger;
     private readonly LiveFeedback.Server.Server _server = new();
     private readonly SignalRService _signalRService = signalRService;
@@ -24,7 +24,11 @@ public class ServerService(
     {
         try
         {
-            await _server.StartAsync();
+            if (globalConfig.Mode == Mode.Local)
+            {
+                await _server.StartAsync(); // local server
+            }
+
             await _signalRService.ConnectAsync();
             await _signalRService.ResetLecture(_appState.LectureId);
         }
@@ -40,7 +44,8 @@ public class ServerService(
         {
             await _signalRService.DeleteLecture(_appState.LectureId);
             await _signalRService.DisconnectAsync();
-            await _server.StopAsync();
+            if (globalConfig.Mode == Mode.Local)
+                await _server.StopAsync(); // local server
         }
         catch (Exception e)
         {

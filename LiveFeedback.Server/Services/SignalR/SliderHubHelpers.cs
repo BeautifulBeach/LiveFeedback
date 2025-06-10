@@ -1,5 +1,4 @@
-﻿using LiveFeedback.Server.Models;
-using LiveFeedback.Shared;
+﻿using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
 using LiveFeedback.Shared.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -48,26 +47,17 @@ public class SliderHubHelpers(ILogger<Server> logger, GlobalConfig globalConfig)
             connectionType = ConnectionType.FirstConnect;
             _logger.LogDebug("Generating new client ID, as it appears to be first connection");
         }
-
-        // presenters store lectureId on client side and attach it as query parameter when reconnecting or joining 
-        client.CurrentLectureId = httpContext.Request.Query["lectureId"].ToString().Trim();
-
-        if (client.CurrentLectureId == "" && connectionType == ConnectionType.Reconnect)
-            client.CurrentLectureId = TryDetermineLectureId();
-
-        return true;
-    }
-
-    public string TryDetermineLectureId()
-    {
-        if (_globalConfig.Mode == Mode.Local)
-        {
-            return LectureService.GetSingleLectureIdInLocalMode();
-        }
         else
         {
-            throw new NotImplementedException();
+            // only get lectureId from query parameters in case of reconnect. If there is a lectureId during first connect,
+            // it is outdated and belongs to a lecture from the past. It has been stored in local storage on client side
+            client.CurrentLectureId = httpContext.Request.Query["lectureId"].ToString().Trim();
         }
+
+        if (client.CurrentLectureId == "")
+            client.CurrentLectureId = LectureService.GetSingleLectureIdIfSingleLecture();
+
+        return true;
     }
 
     // No lecture has been started, no lecture id is present
@@ -78,10 +68,8 @@ public class SliderHubHelpers(ILogger<Server> logger, GlobalConfig globalConfig)
     }
 
     // Client wants to connect to an existing lecture, but which one?
-    // FIXME: Only local mode is currently working
     public void HandleClientFirstConnect(Client client)
     {
-        client.CurrentLectureId = TryDetermineLectureId();
         LectureService.AddClient(client, client.CurrentLectureId);
         _logger.LogInformation("Client connected for the first time");
     }
@@ -93,7 +81,6 @@ public class SliderHubHelpers(ILogger<Server> logger, GlobalConfig globalConfig)
 
     public void HandleClientReconnect(Client client)
     {
-        client.CurrentLectureId = TryDetermineLectureId();
         LectureService.ReaddClient(client, client.CurrentLectureId);
     }
 }

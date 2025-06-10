@@ -5,24 +5,20 @@ using LiveFeedback.Converters.InputValidators;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly AppState _appState;
-    private readonly ServerService _serverService;
-    private bool _isUpdatingMinimalUserCount;
-    private LocalConfig _localConfig;
-
-    public MainWindow(MainWindowViewModel viewModel, ServerService serverService, AppState appState,
-        LocalConfig localConfig)
+    private readonly AppState _appState = Program.Services.GetRequiredService<AppState>();
+    private readonly ServerService _serverService = Program.Services.GetRequiredService<ServerService>();
+    private LocalConfig _localConfig = Program.Services.GetRequiredService<LocalConfig>();
+    
+    public MainWindow()
     {
         InitializeComponent();
-        _serverService = serverService;
-        _appState = appState;
-        _localConfig = localConfig;
-        DataContext = viewModel;
+        DataContext = Program.Services.GetRequiredService<MainWindowViewModel>();
 
         MinimalUserCountInput.AddHandler(TextInputEvent, General.EnsureNumberOnly<ushort>,
             RoutingStrategies.Tunnel);

@@ -55,6 +55,8 @@ public class LocalConfig
 
     public async Task Initialize()
     {
+        if (_initialized)
+            return;
         try
         {
             string configFileContent = await File.ReadAllTextAsync(_configPath);
