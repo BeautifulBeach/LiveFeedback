@@ -152,6 +152,15 @@ public abstract class LectureService
         return lecture;
     }
 
+    public static Client? FindClient(string clientId)
+    {
+        return Lectures.Values
+            .SelectMany(l => l.ConnectedClients
+                .Where(c => c.Value.Id == clientId)
+                .Select(c => c.Value)
+            ).FirstOrDefault();
+    }
+
     public static string[] GetPresenterConnectionIds(string lectureId)
     {
         return Lectures

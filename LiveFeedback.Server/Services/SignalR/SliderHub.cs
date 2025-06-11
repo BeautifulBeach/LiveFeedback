@@ -50,14 +50,13 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
                 throw new ArgumentOutOfRangeException();
         }
 
-        string group = client.IsPresenter ? "Presenter" : "default client";
-        string connId = client.ConnectionId == Context.ConnectionId ? client.ConnectionId : "ERROR";
-        string connType = connectionType == ConnectionType.FirstConnect
-            ? "connected for the first time"
-            : "reconnected";
-
         logger.LogDebug("Client {ClientId} is a {Group}, currently uses ConnectionId {ConnId} and {ConnType}",
-            client.Id, group, connId, connType);
+            client.Id, client.IsPresenter ? "Presenter" : "default client",
+            client.ConnectionId == Context.ConnectionId ? client.ConnectionId : "ERROR",
+            connectionType == ConnectionType.FirstConnect
+                ? "connected for the first time"
+                : "reconnected");
+
         await Clients.Caller.SendAsync(Messages.PersistLectureId, client.CurrentLectureId);
 
         if (client.IsPresenter)
@@ -128,6 +127,13 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
         return LectureService.GetCurrentLectures();
     }
 
+    // "Endpoint" for clients to join a specific lecture if multiple ones are running on the same server
+    public void JoinLecture(Client client)
+    {
+        LectureService.RemoveClientFromPotentialLecturesByClientId(client.Id);
+        LectureService.AddClient(client, client.CurrentLectureId);
+    }
+
     // "Endpoint" that's supposed to be called from a presenter (main program)
     public void ResetLecture(string lectureId)
     {
@@ -141,7 +147,8 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
 
     private async Task SendNewInfoToPresenters(ComprehensibilityInformation info, string lectureId)
     {
-        await Clients.Clients(LectureService.GetPresenterConnectionIds(lectureId))
+        var a = LectureService.GetPresenterConnectionIds(lectureId);
+        await Clients.Clients(a)
             .SendAsync(Messages.NewRating, info);
     }
 }

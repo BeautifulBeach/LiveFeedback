@@ -1,6 +1,4 @@
 @page "/"
-@using System.Text.Json
-@using LiveFeedback.BlazorFrontend.Serivces
 @using LiveFeedback.Shared
 @using LiveFeedback.Shared.Models
 @using Microsoft.AspNetCore.SignalR.Client
@@ -20,29 +18,28 @@
         {
             case >= 2:
                 <h2>Veranstaltung auswählen:</h2>
-                @foreach (Lecture lecture in _lecturesAvailable)
-                {
-                    <button class="lecture" @onclick="() => { SelectLecture(lecture.Id);}">
-                        @if (lecture.Name is not null)
-                        {
-                            <div>@lecture.Name</div>
-                        }
-                        @if (lecture.Room is not null)
-                        {
-                            <div>@lecture.Room</div>
-                        }
-                        @lecture.Id
-                    </button>
-                }
+                <div class="lecture-grid">
+                    @foreach (Lecture lecture in _lecturesAvailable)
+                    {
+                        <button class="lecture" @onclick="async () => { await SelectLecture(lecture.Id);}">
+                            <div class="bold">Veranstaltung:
+                                <span>@(string.IsNullOrEmpty(lecture.Name?.Trim()) ? "Unbenannt" : lecture.Name)</span>
+                            </div>
+                            <div class="bold">Raum:
+                                <span>@(string.IsNullOrEmpty(lecture.Room?.Trim()) ? "Unbenannt" : lecture.Room)</span>
+                            </div>
+                        </button>
+                    }
+                </div>
 
                 break;
             case > 0:
                 <div class="slider-box">
-                    <input id="slider" type="range" min="0" max="100" @bind="_sliderValue"
+                    <input id="slider" type="range" min="0" max="100" @bind="@_thisClient.Rating"
                            oninput="@HandleSliderChange"/>
                 </div>
                 <div class="slider-value">
-                    @_sliderValue %
+                    @_thisClient.Rating %
                 </div>
                 <button class="exit-btn">Teilnahme beenden</button>
                 break;
@@ -55,12 +52,15 @@
 </main>
 
 @code {
-    private ushort _sliderValue = Constants.DefaultRating;
     private HubConnection _hubConnection = null!;
-    private bool? _isConnected;
-    private string _clientId = "";
-    private Lecture _currentLecture = new Lecture();
+    private bool? _isConnected; // null == waiting; true == success; false == fail
+    private Lecture _currentLecture = new();
     private List<Lecture> _lecturesAvailable = [];
+
+    private readonly Client _thisClient = new()
+    {
+        Rating = Constants.DefaultRating,
+    };
     //private readonly SignalRService _signalRService = new SignalRService();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -71,13 +71,13 @@
         }
 
         Uri uri = NavigationManager.ToAbsoluteUri("/slider-hub");
-        _clientId = await GetLocalStorage("clientId") ?? "";
+        _thisClient.Id = await GetLocalStorage("clientId") ?? "";
         _currentLecture.Id = await GetLocalStorage("lectureId") ?? "";
 
         Dictionary<string, string?> queryParams = new()
         {
             { "group", "default" },
-            { "clientId", _clientId },
+            { "clientId", _thisClient.Id },
             { "lectureId", _currentLecture.Id },
         };
         string url = QueryHelpers.AddQueryString(uri.ToString(), queryParams);
@@ -91,7 +91,7 @@
         _hubConnection.On<string>(Messages.PersistClientId, async (id) =>
         {
             await SetLocalStorage("clientId", id);
-            _clientId = id;
+            _thisClient.Id = id;
         });
         _hubConnection.On<string>(Messages.PersistLectureId, async (id) =>
         {
@@ -116,16 +116,16 @@
             _isConnected = false;
         }
 
-        _sliderValue = ushort.Parse(await GetLocalStorage("lastRating") ?? Constants.DefaultRating.ToString());
+        _thisClient.Rating = ushort.Parse(await GetLocalStorage("lastRating") ?? Constants.DefaultRating.ToString());
         StateHasChanged();
-        await SendRatingToServer(_sliderValue);
+        await SendRatingToServer(_thisClient.Rating);
     }
 
     private async Task HandleSliderChange(ChangeEventArgs e)
     {
-        _sliderValue = ushort.TryParse(e.Value?.ToString(), out ushort newValue) ? newValue : _sliderValue;
-        await SendRatingToServer(_sliderValue);
-        await SetLocalStorage("lastRating", _sliderValue.ToString());
+        _thisClient.Rating = ushort.TryParse(e.Value?.ToString(), out ushort newValue) ? newValue : _thisClient.Rating;
+        await SendRatingToServer(_thisClient.Rating);
+        await SetLocalStorage("lastRating", _thisClient.Rating.ToString());
     }
 
     private async Task SendRatingToServer(ushort rating)
@@ -134,7 +134,7 @@
         {
             RatingMessage<ushort> message = new()
             {
-                ClientId = _clientId,
+                ClientId = _thisClient.Id,
                 LectureId = _currentLecture.Id,
                 Rating = rating
             };
@@ -154,12 +154,15 @@
         return [];
     }
 
-    private void SelectLecture(string lectureId)
+    private async Task SelectLecture(string lectureId)
     {
         foreach (Lecture lecture in _lecturesAvailable.Where(lecture => lecture.Id == lectureId))
         {
             _currentLecture = lecture;
             _lecturesAvailable = _lecturesAvailable.Where(l => l.Id == lectureId).ToList();
+            _thisClient.CurrentLectureId = lectureId;
+            await Task.WhenAll(SetLocalStorage("lectureId", lectureId),
+                _hubConnection.InvokeAsync("JoinLecture", _thisClient));
         }
     }
 

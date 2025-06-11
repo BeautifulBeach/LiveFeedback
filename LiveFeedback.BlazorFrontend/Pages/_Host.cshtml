@@ -30,6 +30,10 @@
         font-family: Arial, Helvetica, sans-serif;
         -webkit-tap-highlight-color: transparent;
     }
+    
+    *:not(h1, h2, h3, h4, h5, h6) {
+        font-size: 1rem;
+    }
 
     body {
         background-color: var(--background-color-1);
@@ -125,6 +129,36 @@
 
     #slider::-moz-range-track {
         background: transparent;
+    }
+
+    .lecture-grid {
+        width: 100vw;
+        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 250px));
+        grid-column-gap: 1rem;
+        grid-auto-flow: row;
+        grid-auto-columns: 1fr;
+    }
+
+    .lecture {
+        background-color: var(--background-color-1);
+        padding: 1rem;
+        border-radius: 1rem;
+        color: var(--text-color);
+        border: 2px solid var(--text-color);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .bold {
+        font-weight: bold;
+    }
+    
+    .bold > span{
+        font-weight: normal;
     }
 
 </style>
