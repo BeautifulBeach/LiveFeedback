@@ -3,4 +3,20 @@
     <Style Selector="Border.section">
         <Setter Property="Background" Value="#444444" />
     </Style>
+    
+    <Style Selector="TextBox">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Label">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+    
+    <Style Selector="Button">
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
 </Styles>
