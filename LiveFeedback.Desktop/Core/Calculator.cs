@@ -1,6 +1,5 @@
 using System;
 using LiveFeedback.Models;
-using LiveFeedback.Services;
 using LiveFeedback.Shared.Models;
 
 namespace LiveFeedback.Core;
@@ -9,16 +8,16 @@ public static class Calculator
 {
     // This is the point where calculation of sensitivity settings happens
     public static ComprehensibilityInformation CalculateComprehensibilityWithSensitivity(
-        ComprehensibilityInformation info, AppState appState)
+        ComprehensibilityInformation info, Sensitivity sensitivity)
     {
         // how many individual ratings we have
-        int count = info.IndividualRatings?.Length ?? 0;
+        int count = info.IndividualRatings.Length;
 
         // maximum relative boost at count == 0:
         //   Low    =  0%
         //   Medium = +20%
         //   High   = +40%
-        double maxBoost = appState.Sensitivity switch
+        double maxBoost = sensitivity switch
         {
             Sensitivity.Low => 0.0,
             Sensitivity.Medium => 0.2,

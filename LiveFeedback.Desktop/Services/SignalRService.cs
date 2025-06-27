@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using LiveFeedback.Core;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Models;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -9,8 +10,6 @@ namespace LiveFeedback.Services;
 
 public class SignalRService
 {
-    private readonly AppState _appState;
-    private readonly GlobalConfig _globalConfig;
     private readonly HubConnection _hubConnection;
     private readonly ILogger<App> _logger;
 
@@ -18,22 +17,22 @@ public class SignalRService
     public SignalRService(ILogger<App> logger, GlobalConfig globalConfig, AppState appState)
     {
         _logger = logger;
-        _globalConfig = globalConfig;
-        _appState = appState;
-
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(
-                $"http://{_globalConfig.ServerHost}:{_globalConfig.ServerPort}/slider-hub?group=presenter&clientId={_appState.ClientId}&lectureId={_appState.LectureId}")
+                $"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}/slider-hub?group=presenter&clientId={appState.ClientId}&lectureId={appState.LectureId}")
             .WithAutomaticReconnect()
             .Build();
         _hubConnection.On<string>(Messages.UserJoined,
             data => { _logger.LogDebug("Message received: {Data}", data); });
 
         _hubConnection.On<ComprehensibilityInformation>(Messages.NewRating,
-            info => { _appState.CurrentComprehensibility = info; });
+            info =>
+            {
+                appState.CurrentComprehensibility = Calculator.CalculateComprehensibilityWithSensitivity(info, appState.Sensitivity);
+            });
 
-        _hubConnection.On<string>(Messages.PersistClientId, data => { _appState.ClientId = data; });
-        _hubConnection.On<string>(Messages.PersistLectureId, data => { _appState.LectureId = data; });
+        _hubConnection.On<string>(Messages.PersistClientId, data => { appState.ClientId = data; });
+        _hubConnection.On<string>(Messages.PersistLectureId, data => { appState.LectureId = data; });
     }
 
     public async Task ConnectAsync()

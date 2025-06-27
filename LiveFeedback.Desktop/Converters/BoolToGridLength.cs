@@ -2,10 +2,11 @@ using System;
 using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
+using LiveFeedback.Models;
 
 namespace LiveFeedback.Converters;
 
-public class BoolToGridLengthConverter : IValueConverter
+public class ServerStateToGridLengthConverter : IValueConverter
 {
     public double TrueLength { get; set; } = 500;
 
@@ -17,6 +18,16 @@ public class BoolToGridLengthConverter : IValueConverter
         if (value is bool b)
         {
             isRunning = b;
+        }
+
+        if (value is ServerState serverState)
+        {
+            isRunning = serverState switch
+            {
+                ServerState.Running => true,
+                ServerState.Stopped => false,
+                _ => false,
+            };
         }
 
         return new GridLength(isRunning ? TrueLength : FalseLength, GridUnitType.Pixel);

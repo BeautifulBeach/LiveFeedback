@@ -2,12 +2,34 @@
 using LiveFeedback.Shared.Models;
 using ReactiveUI;
 using System;
+using LiveFeedback.Core;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
 
 public class AppState : ReactiveObject
 {
     private string _lectureId = "";
+    private static readonly LocalConfig LocalConfig = Program.Services.GetRequiredService<LocalConfig>();
+
+    public AppState()
+    {
+        this.WhenAnyValue(x => x.MinimalUserCount)
+            .Subscribe(newCount =>
+            {
+                LocalConfig.MinimalUserCount = newCount;
+                LocalConfig.SaveChanges();
+            });
+
+        this.WhenAnyValue(x => x.Sensitivity)
+            .Subscribe(newSensitivity =>
+            {
+                CurrentComprehensibility =
+                    Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, newSensitivity);
+                LocalConfig.Sensitivity = newSensitivity;
+                LocalConfig.SaveChanges();
+            });
+    }
 
     public string LectureId
     {
@@ -53,7 +75,7 @@ public class AppState : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _overlayPosition, value);
     }
 
-    private Sensitivity _sensitivity;
+    private Sensitivity _sensitivity = LocalConfig.Sensitivity;
 
     public Sensitivity Sensitivity
     {
@@ -61,7 +83,7 @@ public class AppState : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _sensitivity, value);
     }
 
-    private ushort _minimalUserCount;
+    private ushort _minimalUserCount = LocalConfig.MinimalUserCount;
 
     public ushort MinimalUserCount
     {

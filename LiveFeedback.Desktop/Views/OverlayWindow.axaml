@@ -36,7 +36,7 @@
         PointerPressed="PointerPressed_DragWindow"
         Width="30"
         Height="30"
-        Fill="{Binding CurrentComprehensibility.OverallRating, Converter={StaticResource ColorConverter}}"
+        Fill="{Binding AppState.CurrentComprehensibility.OverallRating, Converter={StaticResource ColorConverter}}"
         HorizontalAlignment="Center"
         VerticalAlignment="Center" />
 </Window>
