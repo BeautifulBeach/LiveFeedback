@@ -49,6 +49,7 @@ public class LocalConfig
     public ushort MinimalUserCount { get; set; } = 10;
     public PixelPoint LastOverlayPosition { get; set; }
     public PixelPoint LastMainWindowPosition { get; set; }
+    public OverlayPosition OverlayPosition { get; set; }
     public Mode Mode { get; set; } = Mode.Local;
     public Sensitivity Sensitivity { get; set; } = Sensitivity.High;
     public List<ExternalServerConfig> ExternalServers { get; set; } = [];

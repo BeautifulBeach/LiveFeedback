@@ -68,7 +68,7 @@ public class AppState : ReactiveObject
     }
 
 
-    private OverlayPosition _overlayPosition = OverlayPosition.BottomRight;
+    private OverlayPosition _overlayPosition = LocalConfig.OverlayPosition;
     public OverlayPosition OverlayPosition
     {
         get => _overlayPosition;

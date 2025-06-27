@@ -8,6 +8,7 @@ namespace LiveFeedback.ViewModels;
 public class PositionSelectorViewModel : ReactiveObject
 {
     private readonly AppState _appState;
+    private readonly LocalConfig _localConfig;
 
     private string _blBtnColor;
 
@@ -17,9 +18,10 @@ public class PositionSelectorViewModel : ReactiveObject
 
     private string _trBtnColor;
 
-    public PositionSelectorViewModel(AppState appState)
+    public PositionSelectorViewModel(AppState appState, LocalConfig localConfig)
     {
         _appState = appState;
+        _localConfig = localConfig;
         _tlBtnColor = BtnColor("tl");
         _trBtnColor = BtnColor("tr");
         _brBtnColor = BtnColor("br");
@@ -74,6 +76,8 @@ public class PositionSelectorViewModel : ReactiveObject
             default:
                 throw new ArgumentOutOfRangeException();
         }
+        _localConfig.OverlayPosition = _appState.OverlayPosition;
+        _localConfig.SaveChanges();
     }
 
     private void DeactivateAnyButton()
