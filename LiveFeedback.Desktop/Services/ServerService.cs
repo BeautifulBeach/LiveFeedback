@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
 using Microsoft.Extensions.Logging;
@@ -40,6 +41,9 @@ public class ServerService(
 
     public async Task StopServerAsync()
     {
+        if (_appState.ServerState != ServerState.Running)
+            return;
+
         try
         {
             await _signalRService.DeleteLecture(_appState.LectureId);
