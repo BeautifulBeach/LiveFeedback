@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
-using LiveFeedback.Shared;
 using LiveFeedback.Shared.Models;
 using LiveFeedback.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,15 +14,12 @@ public class MainWindowViewModel(
     ServerService serverService,
     AppState appState,
     OverlayWindowService overlayWindowService,
-    ILogger<App> logger,
-    GlobalConfig globalConfig)
+    ILogger<App> logger)
     : ReactiveObject
 {
     public AppState AppState { get; set; } = appState;
 
     public ObservableCollection<Sensitivity> Items { get; } = [Sensitivity.High, Sensitivity.Medium, Sensitivity.Low];
-
-    public string CurrentFrontendUrl { get; set; } = $"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}";
 
     public async Task ToggleServerState() // start when stopped and stop when running
     {

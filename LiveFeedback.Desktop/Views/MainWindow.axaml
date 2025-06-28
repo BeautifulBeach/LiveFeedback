@@ -12,8 +12,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/logo.ico"
         WindowStartupLocation="CenterScreen"
-        Width="1050"
-        Height="675"
+        Width="1100"
+        Height="700"
         Title="LiveFeedback">
 
     <Window.Resources>
@@ -36,24 +36,25 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition
                         Width="{Binding AppState.ServerState, Converter={StaticResource ServerStateToGridLengthConverter}}" />
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <!-- Left part (QR-Code) -->
                 <StackPanel Grid.Row="0"
                             IsVisible="{Binding AppState.ServerState,
                              Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Running}}">
-                    <qr:QrCode Data="{Binding CurrentFrontendUrl}"
+                    <qr:QrCode Data="{Binding AppState.CurrentServer.Url}"
                                Foreground="Black"
                                Background="White"
                                CornerRadius="5"
                                Width="500"
                                Height="500" />
-                    <TextBlock Text="{Binding CurrentFrontendUrl}" HorizontalAlignment="Center"
+                    <TextBlock Text="{Binding AppState.CurrentServer.Url}" HorizontalAlignment="Center"
                                Margin="0,20,0,0" />
                 </StackPanel>
 
                 <!-- Right part (options) -->
-                <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
+                <Grid Grid.Column="2" RowDefinitions="Auto, Auto">
                     <!-- Right part, Section 1  -->
                     <Border Grid.Row="0" Padding="40" Classes="section" Margin="0,0,0,10"
                             CornerRadius="5">

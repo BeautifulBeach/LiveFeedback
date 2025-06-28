@@ -5,6 +5,7 @@
         xmlns:vm="using:LiveFeedback.ViewModels"
         xmlns:conv="using:LiveFeedback.Converters"
         xmlns:sharedEnums="using:LiveFeedback.Shared.Enums"
+        xmlns:dgrid="using:Avalonia.Controls"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LiveFeedback.Views.SettingsWindow"
         x:DataType="vm:SettingsWindowViewModel"
@@ -19,24 +20,59 @@
     <Grid RowDefinitions="Auto, *">
         <TextBlock Grid.Row="0" Classes="h1" TextAlignment="Center" Text="Einstellungen" />
         <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
-            <Grid RowSpacing="20" RowDefinitions="Auto, Auto" >
+            <Grid RowSpacing="20" RowDefinitions="Auto, Auto" MaxWidth="1000">
                 <!-- Mode settings – local or distributed? -->
                 <Grid Classes="section" Grid.Row="0" RowDefinitions="Auto, Auto"
                       VerticalAlignment="Center">
                     <Border Classes="section" Grid.Row="0" HorizontalAlignment="Stretch">
-                        <Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
-                            <TextBlock Grid.Column="0" Text="Modus:" VerticalAlignment="Center" />
+                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto" VerticalAlignment="Center">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Modus:" VerticalAlignment="Center" />
 
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch"
+                            <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal"
+                                        HorizontalAlignment="Stretch"
                                         Spacing="20">
                                 <RadioButton Content="lokal" GroupName="mode"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Local}}" />
-                                <RadioButton Content="verteilt" GroupName="mode"
+                                <RadioButton Content="verteilt" GroupName="mode" IsEnabled="{Binding ExternalServersConfigured}"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}" />
                             </StackPanel>
+
+                            <Border Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
+                                    IsVisible="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}"
+                                    Margin="0,20,0,0">
+
+                                <Grid ColumnDefinitions="Auto, *, Auto">
+                                    <TextBlock Text="Server:" />
+                                    <ComboBox Grid.Column="2" ItemsSource="{Binding ExternalServers}"
+                                              SelectedItem="{Binding AppState.CurrentServer}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Host}" />
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </Grid>
+                            </Border>
                         </Grid>
                     </Border>
 
+                </Grid>
+
+                <!-- Settings for external servers -->
+                <Grid Grid.Row="1" RowDefinitions="Auto, *" Classes="section">
+                    <TextBlock Text="Remote-Server:" Classes="h2" />
+                    <DataGrid Classes="section" Grid.Row="1" MaxWidth="960"
+                              ItemsSource="{Binding  ExternalServers, Mode=TwoWay}"
+                              AutoGenerateColumns="False"
+                              CornerRadius="5"
+                              CanUserResizeColumns="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Server-Name (optional)" Binding="{Binding Name}" Width="Auto"
+                                                MinWidth="180" />
+                            <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="*" />
+                            <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="Auto" MinWidth="125" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Grid>
             </Grid>
         </ScrollViewer>

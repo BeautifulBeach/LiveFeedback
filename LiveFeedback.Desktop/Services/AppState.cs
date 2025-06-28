@@ -3,6 +3,7 @@ using LiveFeedback.Shared.Models;
 using ReactiveUI;
 using System;
 using LiveFeedback.Core;
+using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,34 +12,29 @@ namespace LiveFeedback.Services;
 public class AppState : ReactiveObject
 {
     private string _lectureId = "";
-    private static readonly LocalConfig LocalConfig = Program.Services.GetRequiredService<LocalConfig>();
+
+    private static readonly LocalConfigService LocalConfigService =
+        Program.Services.GetRequiredService<LocalConfigService>();
 
     public AppState()
     {
+        _currentServer = LocalConfigService.GetPreferredServerConfig(Mode);
         this.WhenAnyValue(x => x.MinimalUserCount)
-            .Subscribe(newCount =>
-            {
-                LocalConfig.MinimalUserCount = newCount;
-                LocalConfig.SaveChanges();
-            });
+            .Subscribe(newCount => { LocalConfigService.SaveMinimalUserCount(newCount); });
 
         this.WhenAnyValue(x => x.Sensitivity)
             .Subscribe(newSensitivity =>
             {
                 CurrentComprehensibility =
                     Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, newSensitivity);
-                LocalConfig.Sensitivity = newSensitivity;
-                LocalConfig.SaveChanges();
+                LocalConfigService.SaveSensitivity(newSensitivity);
             });
 
         this.WhenAnyValue(x => x.Mode)
             .Subscribe(newMode =>
             {
-                if (LocalConfig.Mode == newMode)
-                    return;
-                
-                LocalConfig.Mode = newMode;
-                LocalConfig.SaveChanges();
+                CurrentServer = LocalConfigService.GetPreferredServerConfig(newMode);
+                LocalConfigService.SaveMode(newMode);
             });
     }
 
@@ -59,7 +55,7 @@ public class AppState : ReactiveObject
     private ComprehensibilityInformation _currentComprehensibility = new()
     {
         IndividualRatings = [],
-        OverallRating = Shared.Constants.DefaultRating,
+        OverallRating = Constants.DefaultRating,
         UsersInvolved = 0
     };
 
@@ -79,7 +75,7 @@ public class AppState : ReactiveObject
     }
 
 
-    private OverlayPosition _overlayPosition = LocalConfig.OverlayPosition;
+    private OverlayPosition _overlayPosition = LocalConfigService.GetOverlayPosition();
 
     public OverlayPosition OverlayPosition
     {
@@ -87,7 +83,7 @@ public class AppState : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _overlayPosition, value);
     }
 
-    private Sensitivity _sensitivity = LocalConfig.Sensitivity;
+    private Sensitivity _sensitivity = LocalConfigService.GetSensitivity();
 
     public Sensitivity Sensitivity
     {
@@ -95,7 +91,7 @@ public class AppState : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _sensitivity, value);
     }
 
-    private Mode _mode = LocalConfig.Mode;
+    private Mode _mode = LocalConfigService.GetMode();
 
     public Mode Mode
     {
@@ -103,11 +99,19 @@ public class AppState : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _mode, value);
     }
 
-    private ushort _minimalUserCount = LocalConfig.MinimalUserCount;
+    private ushort _minimalUserCount = LocalConfigService.GetMinimalUserCount();
 
     public ushort MinimalUserCount
     {
         get => _minimalUserCount;
         set => this.RaiseAndSetIfChanged(ref _minimalUserCount, value);
+    }
+
+    private ServerConfig _currentServer;
+
+    public ServerConfig CurrentServer
+    {
+        get => _currentServer;
+        set => this.RaiseAndSetIfChanged(ref _currentServer, value);
     }
 }

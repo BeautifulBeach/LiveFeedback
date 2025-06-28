@@ -21,7 +21,7 @@ internal sealed class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
-        await Services.GetRequiredService<LocalConfig>().Initialize();
+        await Services.GetRequiredService<LocalConfigService>().Setup();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
@@ -47,7 +47,7 @@ internal sealed class Program
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Information);
         });
-        services.AddSingleton<LocalConfig>();
+        services.AddSingleton<LocalConfigService>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<OverlayWindow>();
