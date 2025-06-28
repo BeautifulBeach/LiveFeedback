@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using FluentValidation;
+using FluentValidation.Results;
 using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
@@ -56,7 +58,26 @@ public class LocalConfigService
         }
         else
         {
-            _config = JsonSerializer.Deserialize<LocalConfig>(possibleData, JsonSerializerOptions);
+            try
+            {
+                LocalConfig? untestedConfig = JsonSerializer.Deserialize<LocalConfig>(possibleData, JsonSerializerOptions);
+                ValidationResult result = await new LocalConfigValidator().ValidateAsync(untestedConfig);
+                if (result.IsValid)
+                {
+                    _config = untestedConfig;
+                }
+                else
+                {
+                    _logger.LogCritical("Invalid config file: {EMessage}", result.Errors);
+                    _logger.LogWarning("Fallback to default config.");
+                    _config = DefaultConfig();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Invalid config file: {EMessage}", e.Message);
+                Environment.Exit(1);
+            }
         }
     }
 
@@ -139,24 +160,32 @@ public class LocalConfigService
 
     public void SaveMinimalUserCount(ushort minimalUserCount)
     {
+        if (_config.MinimalUserCount == minimalUserCount)
+            return;
         _config.MinimalUserCount = minimalUserCount;
         Task.Run(() => WriteConfigFile(_config));
     }
 
     public void SaveSensitivity(Sensitivity sensitivity)
     {
+        if (_config.Sensitivity == sensitivity)
+            return;
         _config.Sensitivity = sensitivity;
         Task.Run(() => WriteConfigFile(_config));
     }
 
     public void SaveMode(Mode mode)
     {
+        if (_config.Mode == mode)
+            return;
         _config.Mode = mode;
         Task.Run(() => WriteConfigFile(_config));
     }
 
     public void SaveOverlayPosition(OverlayPosition overlayPosition)
     {
+        if (_config.OverlayPosition == overlayPosition)
+            return;
         _config.OverlayPosition = overlayPosition;
         Task.Run(() => WriteConfigFile(_config));
     }
@@ -165,7 +194,6 @@ public class LocalConfigService
     {
         if (_config.ExternalServers.Contains(serverConfig))
             return;
-
         _config.ExternalServers.Add(serverConfig);
         Task.Run(() => WriteConfigFile(_config));
     }
