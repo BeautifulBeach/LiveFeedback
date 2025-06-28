@@ -25,5 +25,13 @@ public partial class MainWindow : Window
                 e.Handled = true;
             }
         };
+
+        MinimalUserCountInput.LostFocus += (sender, e) =>
+        {
+            if (sender is TextBox textBox && string.IsNullOrEmpty(textBox.Text))
+            {
+                textBox.Text = "1";
+            }
+        };
     }
 }
