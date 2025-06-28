@@ -4,6 +4,8 @@ using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Models;
+using LiveFeedback.Views;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ReactiveUI;
 
@@ -51,5 +53,11 @@ public class MainWindowViewModel(
                 logger.LogDebug("Server is being started, command is ignored");
                 break;
         }
+    }
+    public void LaunchSettingsWindow()
+    {
+        SettingsWindow window = Program.Services.GetRequiredService<SettingsWindow>();
+        window.DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>();
+        window.Show();
     }
 }

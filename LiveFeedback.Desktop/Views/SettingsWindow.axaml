@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:LiveFeedback.ViewModels"
+        xmlns:conv="using:LiveFeedback.Converters"
+        xmlns:sharedEnums="using:LiveFeedback.Shared.Enums"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="LiveFeedback.Views.SettingsWindow"
+        x:DataType="vm:SettingsWindowViewModel"
+        Title="Einstellungen"
+        Width="1000"
+        Height="650">
+
+    <Window.Resources>
+        <conv:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+    </Window.Resources>
+
+    <Grid RowDefinitions="Auto, *">
+        <TextBlock Grid.Row="0" Classes="h1" TextAlignment="Center" Text="Einstellungen" />
+        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
+            <Grid RowSpacing="20" RowDefinitions="Auto, Auto" >
+                <!-- Mode settings – local or distributed? -->
+                <Grid Classes="section" Grid.Row="0" RowDefinitions="Auto, Auto"
+                      VerticalAlignment="Center">
+                    <Border Classes="section" Grid.Row="0" HorizontalAlignment="Stretch">
+                        <Grid ColumnDefinitions="Auto, *, Auto" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="Modus:" VerticalAlignment="Center" />
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Stretch"
+                                        Spacing="20">
+                                <RadioButton Content="lokal" GroupName="mode"
+                                             IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Local}}" />
+                                <RadioButton Content="verteilt" GroupName="mode"
+                                             IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+
+</Window>

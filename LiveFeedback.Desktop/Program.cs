@@ -57,6 +57,8 @@ internal sealed class Program
         services.AddSingleton<ServerService>();
         services.AddSingleton<AppState>();
         services.AddSingleton<PositionSelectorViewModel>();
+        services.AddSingleton<SettingsWindowViewModel>();
+        services.AddTransient<SettingsWindow>();
         return services.BuildServiceProvider();
     }
 }

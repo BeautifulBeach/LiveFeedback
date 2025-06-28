@@ -3,6 +3,7 @@ using LiveFeedback.Shared.Models;
 using ReactiveUI;
 using System;
 using LiveFeedback.Core;
+using LiveFeedback.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
@@ -27,6 +28,16 @@ public class AppState : ReactiveObject
                 CurrentComprehensibility =
                     Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, newSensitivity);
                 LocalConfig.Sensitivity = newSensitivity;
+                LocalConfig.SaveChanges();
+            });
+
+        this.WhenAnyValue(x => x.Mode)
+            .Subscribe(newMode =>
+            {
+                if (LocalConfig.Mode == newMode)
+                    return;
+                
+                LocalConfig.Mode = newMode;
                 LocalConfig.SaveChanges();
             });
     }
@@ -69,6 +80,7 @@ public class AppState : ReactiveObject
 
 
     private OverlayPosition _overlayPosition = LocalConfig.OverlayPosition;
+
     public OverlayPosition OverlayPosition
     {
         get => _overlayPosition;
@@ -81,6 +93,14 @@ public class AppState : ReactiveObject
     {
         get => _sensitivity;
         set => this.RaiseAndSetIfChanged(ref _sensitivity, value);
+    }
+
+    private Mode _mode = LocalConfig.Mode;
+
+    public Mode Mode
+    {
+        get => _mode;
+        set => this.RaiseAndSetIfChanged(ref _mode, value);
     }
 
     private ushort _minimalUserCount = LocalConfig.MinimalUserCount;
