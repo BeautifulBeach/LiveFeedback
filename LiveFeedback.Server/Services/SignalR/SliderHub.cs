@@ -115,8 +115,8 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
             return;
         }
 
-        logger.LogDebug("Sending new info to presenter(s): {Info}",
-            JsonSerializer.Serialize(info));
+        // logger.LogDebug("Sending new info to presenter(s): {Info}",
+        //     JsonSerializer.Serialize(info));
 
         await SendNewInfoToPresenters(info, comprehensibilityMessage.LectureId);
     }

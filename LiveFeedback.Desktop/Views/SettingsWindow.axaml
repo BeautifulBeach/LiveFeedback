@@ -15,6 +15,7 @@
 
     <Window.Resources>
         <conv:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <conv:EqualsConverter x:Key="EqualsConverter" />
     </Window.Resources>
 
     <Grid RowDefinitions="Auto, *">
@@ -33,7 +34,7 @@
                                         Spacing="20">
                                 <RadioButton Content="lokal" GroupName="mode"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Local}}" />
-                                <RadioButton Content="verteilt" GroupName="mode" IsEnabled="{Binding ExternalServersConfigured}"
+                                <RadioButton Content="verteilt" GroupName="mode" IsEnabled="{Binding ExternalServersAvailable}"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}" />
                             </StackPanel>
 
@@ -64,6 +65,7 @@
                     <DataGrid Classes="section" Grid.Row="1" MaxWidth="960"
                               ItemsSource="{Binding  ExternalServers, Mode=TwoWay}"
                               AutoGenerateColumns="False"
+                              Background="#3e3e3e"
                               CornerRadius="5"
                               CanUserResizeColumns="True">
                         <DataGrid.Columns>

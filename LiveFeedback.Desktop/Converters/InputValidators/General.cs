@@ -48,17 +48,18 @@ public class General
                 return;
         }
 
-        if (!IsValidNumber<T>(text))
+        if (!IsValidNumber<T>(text, out T _))
         {
             e.Handled = true; // break
         }
     }
 
-    public static bool IsValidNumber<T>(string input) where T : IParsable<T>
+    public static bool IsValidNumber<T>(string input, out T number) where T : IParsable<T>
     {
+        number = default!;
         try
         {
-            _ = T.Parse(input, CultureInfo.CurrentCulture);
+            number = T.Parse(input, CultureInfo.CurrentCulture);
             return true;
         }
         catch

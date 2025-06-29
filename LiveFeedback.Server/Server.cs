@@ -1,9 +1,6 @@
-using LiveFeedback.BlazorFrontend;
-using LiveFeedback.Server.Services;
 using LiveFeedback.Server.Services.SignalR;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
-using Environment = LiveFeedback.Shared.Enums.Environment;
 
 namespace LiveFeedback.Server;
 
@@ -70,7 +67,14 @@ public class Server
         }
         catch (Exception e)
         {
-            _app.Logger.LogError($"Failed to start server: {e.Message}");
+            if (_app is null)
+            {
+                Console.WriteLine($"Failed to start server: {e}");
+            }
+            else
+            {
+                _app.Logger.LogError("Failed to start server: {EMessage}", e.Message);
+            }
         }
     }
 

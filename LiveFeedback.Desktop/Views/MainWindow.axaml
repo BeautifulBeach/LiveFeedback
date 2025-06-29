@@ -63,7 +63,7 @@
                             <Label Grid.Column="0" Grid.Row="0" Width="NaN" VerticalAlignment="Center">Mindesteilnehmerzahl:</Label>
                             <TextBox Grid.Column="2" Grid.Row="0" x:Name="MinimalUserCountInput" TextAlignment="Center"
                                      VerticalAlignment="Center" HorizontalAlignment="Center"
-                                     Text="{Binding AppState.MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Text="{Binding MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Width="120"
                                      CornerRadius="5"
                                      VerticalContentAlignment="Center"

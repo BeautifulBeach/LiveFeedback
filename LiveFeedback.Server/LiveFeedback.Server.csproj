@@ -1,19 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
-    <ItemGroup>
-      <ProjectReference Include="..\LiveFeedback.BlazorFrontend\LiveFeedback.BlazorFrontend.csproj" />
-      <ProjectReference Include="..\LiveFeedback.Shared\LiveFeedback.Shared.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\Enums\" />
-    </ItemGroup>
-
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <OutputType>Exe</OutputType>
+        <OutputType>Library</OutputType>
+        <PublishAot>true</PublishAot>
+        <PublishTrimmed>true</PublishTrimmed>
     </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="Models\Enums\"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\LiveFeedback.BlazorFrontend\LiveFeedback.BlazorFrontend.csproj"/>
+        <ProjectReference Include="..\LiveFeedback.Shared\LiveFeedback.Shared.csproj"/>
+    </ItemGroup>
+
+<!--    <ItemGroup>-->
+<!--    </ItemGroup>-->
 
 </Project>

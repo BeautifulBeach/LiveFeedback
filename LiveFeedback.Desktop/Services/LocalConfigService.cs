@@ -22,17 +22,11 @@ public class LocalConfigService
     private readonly GlobalConfig _globalConfig;
     private LocalConfig _config;
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true,
-        IncludeFields = true,
-    };
-
     public LocalConfigService(ILogger<App> logger, GlobalConfig globalConfig)
     {
         _logger = logger;
         _globalConfig = globalConfig;
+        _config = DefaultConfig();
         if (!Directory.Exists(_configDir))
         {
             Directory.CreateDirectory(_configDir);
@@ -60,7 +54,13 @@ public class LocalConfigService
         {
             try
             {
-                LocalConfig? untestedConfig = JsonSerializer.Deserialize<LocalConfig>(possibleData, JsonSerializerOptions);
+                LocalConfig? untestedConfig =
+                    JsonSerializer.Deserialize<LocalConfig>(possibleData, JsonContext.Default.LocalConfig);
+                if (untestedConfig == null)
+                {
+                    throw new NullReferenceException($"{nameof(untestedConfig)} is null");
+                }
+
                 ValidationResult result = await new LocalConfigValidator().ValidateAsync(untestedConfig);
                 if (result.IsValid)
                 {
@@ -133,7 +133,7 @@ public class LocalConfigService
     {
         try
         {
-            string data = JsonSerializer.Serialize(config, JsonSerializerOptions);
+            string data = JsonSerializer.Serialize(config, JsonContext.Default.LocalConfig);
             await File.WriteAllTextAsync(_configPath, data);
         }
         catch (Exception e)

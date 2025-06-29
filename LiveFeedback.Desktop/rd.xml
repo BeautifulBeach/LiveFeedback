@@ -1,0 +1,7 @@
+<Directives>
+    <Application>
+        <Assembly Name="Avalonia.Themes.Fluent">
+            <Type Name="*" Dynamic="Required All"/>
+        </Assembly>
+    </Application>
+</Directives>
