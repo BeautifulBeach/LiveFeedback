@@ -43,7 +43,7 @@
                 <StackPanel Grid.Row="0"
                             IsVisible="{Binding AppState.ServerState,
                              Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Running}}">
-                    <qr:QrCode Data="{Binding AppState.CurrentServer.Url}"
+                    <qr:QrCode Data="{Binding FrontenUrl}"
                                Foreground="Black"
                                Background="White"
                                CornerRadius="5"

@@ -35,7 +35,7 @@ public class ServerService(
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message);
+            _logger.LogError("Failed to start local server or to connect to it: {EMessage}", e.Message);
         }
     }
 
@@ -53,7 +53,7 @@ public class ServerService(
         }
         catch (Exception e)
         {
-            _logger.LogError(e.Message);
+            _logger.LogError("Failed to disconnect from server or to stop local server: {EMessage}", e.Message);
         }
     }
 }

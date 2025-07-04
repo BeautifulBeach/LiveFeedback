@@ -4,3 +4,15 @@ obj/
 .vs/
 .env
 *.DotSettings.user
+*/wwwroot/*
+
+# JS frontend
+node_modules/
+dist/
+build/
+.vite/
+
+package-lock.json
+bun.lock
+.env.local
+.env.*.local

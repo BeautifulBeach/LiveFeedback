@@ -4,8 +4,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Library</OutputType>
-        <PublishAot>true</PublishAot>
-        <PublishTrimmed>true</PublishTrimmed>
+        <GenerateStaticWebAssetsManifest>true</GenerateStaticWebAssetsManifest>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,7 +16,17 @@
         <ProjectReference Include="..\LiveFeedback.Shared\LiveFeedback.Shared.csproj"/>
     </ItemGroup>
 
-<!--    <ItemGroup>-->
-<!--    </ItemGroup>-->
+    <!-- Variables for WebFrontend  -->
+    <PropertyGroup>
+        <VueRoot>WebFrontend\</VueRoot>
+        <VueInstallDependencies>bun install</VueInstallDependencies>
+        <VueBuildCommand>bun run build</VueBuildCommand>
+    </PropertyGroup>
+    
+    <!-- Include the web front end when creating the solution -->
+    <Target Name="BuildVue" BeforeTargets="GenerateStaticWebAssetsManifest">
+        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueInstallDependencies)" />
+        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueBuildCommand)" />
+    </Target>
 
 </Project>

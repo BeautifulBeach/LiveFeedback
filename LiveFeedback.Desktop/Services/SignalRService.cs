@@ -4,6 +4,7 @@ using LiveFeedback.Core;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Models;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace LiveFeedback.Services;
@@ -20,6 +21,10 @@ public class SignalRService
         _hubConnection = new HubConnectionBuilder()
             .WithUrl(
                 $"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}/slider-hub?group=presenter&clientId={appState.ClientId}&lectureId={appState.LectureId}")
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.TypeInfoResolver = Shared.Models.EfficientJsonContext.Default;
+            })
             .WithAutomaticReconnect()
             .Build();
         _hubConnection.On<string>(Messages.UserJoined,

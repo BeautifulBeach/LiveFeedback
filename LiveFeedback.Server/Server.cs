@@ -1,6 +1,8 @@
+using System.Reflection;
 using LiveFeedback.Server.Services.SignalR;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
+using LiveFeedback.Shared.Models;
 
 namespace LiveFeedback.Server;
 
@@ -13,42 +15,80 @@ public class Server
         try
         {
             GlobalConfig globalConfig = new();
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions()
+
+            Assembly serverAssembly = typeof(Server).Assembly;
+            string serverFolder = Path.GetDirectoryName(serverAssembly.Location)!;
+
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
-                WebRootPath = globalConfig.WwwRootPath,
+                ApplicationName = serverAssembly.GetName().Name,
+                ContentRootPath = serverFolder,
+                WebRootPath = Path.Combine(serverFolder, "wwwroot")
             });
+
+            builder.WebHost.UseStaticWebAssets();
+
+            // 1) Services
             builder.Services.AddSingleton<GlobalConfig>();
             builder.Services.AddSingleton<SliderHubHelpers>();
-            builder.WebHost.UseUrls($"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}");
-            builder.Services.AddSignalR();
-            builder.Services.AddServerSideBlazor();
+            builder.Services.AddSignalR()
+                .AddJsonProtocol(options =>
+                {
+                    options.PayloadSerializerOptions.TypeInfoResolver = EfficientJsonContext.Default;
+                });
             builder.Services.AddLogging(loggingBuilder =>
             {
                 loggingBuilder.AddConsole();
                 loggingBuilder.SetMinimumLevel(LogLevel.Information);
             });
 
-            builder.Services.AddServerSideBlazor().AddHubOptions(options =>
-            {
-                options.MaximumReceiveMessageSize = 102400;
-            });
+            // builder.Services.AddServerSideBlazor();
 
-            builder.Services.AddRazorPages()
-                .AddApplicationPart(typeof(LiveFeedback.BlazorFrontend._Imports).Assembly);
+            // builder.Services.AddServerSideBlazor().AddHubOptions(options =>
+            // {
+            //     options.MaximumReceiveMessageSize = 102400;
+            // });
 
+            // builder.Services.AddRazorPages()
+            //     .AddApplicationPart(typeof(BlazorFrontend._Imports).Assembly);
+
+            builder.WebHost.UseUrls($"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}");
             _app = builder.Build();
-            _app.Logger.LogInformation("Trying to start server…");
 
+            // 2) Routing
             _app.UseStaticFiles();
+            _app.UseWebSockets();
             _app.UseRouting();
 
-
-            _app.UseWebSockets();
-            _app.MapBlazorHub();
+            // 3) SignalR hubs
             _app.MapHub<SliderHub>("/slider-hub");
 
-            _app.MapFallbackToPage("/_Host");
+            // 4) API
             _app.MapGet("/api/hello", () => "Hello from LiveFeedback server!");
+
+            // 5) Special deep link fallbacks for WebFrontends
+            _app.MapFallbackToFile("{*path}", "index.html");
+
+            // _app.UseFileServer(new FileServerOptions()
+            // {
+            //     FileProvider = new PhysicalFileProvider(Path.Combine(_app.Environment.ContentRootPath, "wwwroot")),
+            //     RequestPath = "",
+            //     EnableDefaultFiles = true,
+            //     EnableDirectoryBrowsing = false,
+            // });
+
+            // _app.UseStaticFiles(new StaticFileOptions()
+            // {
+            //     FileProvider = new PhysicalFileProvider(Path.Combine(_app.Environment.ContentRootPath, "wwwroot")),
+            //     RequestPath = ""
+            // });
+
+
+            _app.Logger.LogInformation("Trying to start server…");
+
+            // _app.MapBlazorHub();
+
+            // _app.MapFallbackToPage("/_Host");
 
             if (mode == Mode.Distributed)
             {
@@ -67,14 +107,7 @@ public class Server
         }
         catch (Exception e)
         {
-            if (_app is null)
-            {
-                Console.WriteLine($"Failed to start server: {e}");
-            }
-            else
-            {
-                _app.Logger.LogError("Failed to start server: {EMessage}", e.Message);
-            }
+            _app.Logger.LogError("Failed to start server: {EMessage}", e.Message);
         }
     }
 
@@ -82,5 +115,6 @@ public class Server
     {
         _app.Logger.LogInformation("Stopping Server…");
         await _app.StopAsync();
+        await _app.DisposeAsync();
     }
 }

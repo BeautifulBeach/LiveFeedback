@@ -27,11 +27,12 @@ public class MainWindowViewModel : ReactiveObject
         OverlayWindowService overlayWindowService,
         ILogger<App> logger)
     {
+        AppState = appState;
         _serverService = serverService;
         _overlayWindowService = overlayWindowService;
         _logger = logger;
         _minimalUserCount = appState.MinimalUserCount.ToString();
-        AppState = appState;
+        _frontenUrl = $"{AppState.CurrentServer.Url}/lecture/{AppState.LectureId}";
 
         this.WhenAnyValue(x => x.MinimalUserCount)
             .Subscribe(newUserCount =>
@@ -45,6 +46,9 @@ public class MainWindowViewModel : ReactiveObject
                     newUserCount = "1";
                 }
             });
+
+        AppState.WhenAnyValue(x => x.LectureId)
+            .Subscribe(newLectureId => { FrontenUrl = $"{AppState.CurrentServer.Url}/lecture/{newLectureId}"; });
     }
 
     private string _minimalUserCount;
@@ -53,6 +57,14 @@ public class MainWindowViewModel : ReactiveObject
     {
         get => _minimalUserCount;
         set => this.RaiseAndSetIfChanged(ref _minimalUserCount, value);
+    }
+
+    private string _frontenUrl;
+
+    public string FrontenUrl
+    {
+        get => _frontenUrl;
+        set => this.RaiseAndSetIfChanged(ref _frontenUrl, value);
     }
 
     public async Task ToggleServerState() // start when stopped and stop when running
