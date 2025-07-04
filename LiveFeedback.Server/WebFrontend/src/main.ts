@@ -11,4 +11,3 @@ app.use(router)
 app.provide(signalRKey, signalRService)
 
 app.mount('#app')
-signalRService.startConnectionAsync();

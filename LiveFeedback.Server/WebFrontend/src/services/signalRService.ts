@@ -13,22 +13,11 @@ export class SignalRService {
   private _hubConnection: HubConnection
 
   constructor() {
-    this._hubConnection = new HubConnectionBuilder()
-      .withUrl(`/slider-hub?group=default&clientId=${localStorage.getItem(storageKeys.clientId)}&lectureId=${localStorage.getItem(storageKeys.lectureId)}`)
-      .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information)
-      .build()
-
-    this._hubConnection.on(messages.persistClientId, id => {
-      localStorage.setItem(storageKeys.clientId, id)
-    })
-
-    this._hubConnection.on(messages.persistLectureId, id => {
-      localStorage.setItem(storageKeys.lectureId, id)
-    })
+    this._hubConnection = configureHubConnection(localStorage.getItem(storageKeys.lectureId) ?? '')
   }
 
-  async startConnectionAsync(): Promise<void> {
+  async startConnectionAsync(lectureId: string): Promise<void> {
+    this._hubConnection = configureHubConnection(lectureId)
     if (this._hubConnection.state == HubConnectionState.Disconnected) {
       await this._hubConnection.start()
     }
@@ -49,3 +38,21 @@ export class SignalRService {
 }
 
 export const signalRService = new SignalRService()
+
+function configureHubConnection(lectureId: string): HubConnection {
+  const hubConnection = new HubConnectionBuilder()
+    .withUrl(`/slider-hub?group=default&clientId=${localStorage.getItem(storageKeys.clientId)}&lectureId=${lectureId}`)
+    .withAutomaticReconnect()
+    .configureLogging(LogLevel.Information)
+    .build()
+
+  hubConnection.on(messages.persistClientId, id => {
+    localStorage.setItem(storageKeys.clientId, id)
+  })
+
+  hubConnection.on(messages.persistLectureId, id => {
+    localStorage.setItem(storageKeys.lectureId, id)
+  })
+
+  return hubConnection
+}
