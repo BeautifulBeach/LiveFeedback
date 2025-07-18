@@ -9,3 +9,9 @@ export const storageKeys = {
   clientId: 'clientId',
   lectureId: 'lectureId'
 }
+
+export const serverSideFunctions = {
+  ratingReport: 'RatingReport',
+  getCurrentLectures: 'GetCurrentLectures',
+  joinLecture: 'JoinLecture'
+}

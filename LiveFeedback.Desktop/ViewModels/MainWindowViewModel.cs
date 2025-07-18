@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using LiveFeedback.Converters.InputValidators;
 using LiveFeedback.Models;
@@ -102,5 +103,15 @@ public class MainWindowViewModel : ReactiveObject
         SettingsWindow window = Program.Services.GetRequiredService<SettingsWindow>();
         window.DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>();
         window.Show();
+    }
+
+    public void OpenInBrowser()
+    {
+        ProcessStartInfo psi = new()
+        {
+            FileName = FrontenUrl,
+            UseShellExecute = true
+        };
+        Process.Start(psi);
     }
 }

@@ -1,6 +1,4 @@
 using System.Collections.Concurrent;
-using LiveFeedback.BlazorFrontend;
-using LiveFeedback.Shared.Enums;
 using Client = LiveFeedback.Shared.Models.Client;
 using Lecture = LiveFeedback.Shared.Models.Lecture;
 

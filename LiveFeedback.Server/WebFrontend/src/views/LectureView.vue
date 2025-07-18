@@ -1,10 +1,16 @@
 <script setup lang="ts">
-const props = defineProps<{ id: string }>()
-console.log("lecture ID: ", props.id)
+import { type Ref, ref, watch } from 'vue'
+import { signalRService } from '@/services/signalRService.ts'
+
+const currentRating: Ref<number> = ref(50)
+
+watch(currentRating, async (newRating) => {
+  await signalRService.sendNewRating(newRating)
+})
 </script>
 
 <template>
-  <div>Lecture view for lecture {{ id }}</div>
+  <input type="range" v-model.number="currentRating" />
 </template>
 
 <style scoped>

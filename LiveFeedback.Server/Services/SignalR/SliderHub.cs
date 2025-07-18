@@ -106,8 +106,9 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
         }
 
         LectureService.UpdateRating(comprehensibilityMessage.ClientId, comprehensibilityMessage.Rating);
-        Console.WriteLine(
-            $"Got new rating from client {comprehensibilityMessage.ClientId} for lecture {comprehensibilityMessage.LectureId}: {comprehensibilityMessage.Rating}");
+        logger.LogDebug(
+            "Got new rating from client {ClientId} for lecture {LectureId}: {Rating}"
+            , comprehensibilityMessage.ClientId, comprehensibilityMessage.LectureId, comprehensibilityMessage.Rating);
         ComprehensibilityInformation? info = BuildInfoFromConnectedUsers(comprehensibilityMessage.LectureId);
         if (info == null)
         {

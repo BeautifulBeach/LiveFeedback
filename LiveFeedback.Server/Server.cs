@@ -3,6 +3,7 @@ using LiveFeedback.Server.Services.SignalR;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
 using LiveFeedback.Shared.Models;
+using Microsoft.Extensions.FileProviders;
 
 namespace LiveFeedback.Server;
 
@@ -16,14 +17,13 @@ public class Server
         {
             GlobalConfig globalConfig = new();
 
-            Assembly serverAssembly = typeof(Server).Assembly;
-            string serverFolder = Path.GetDirectoryName(serverAssembly.Location)!;
+            ManifestEmbeddedFileProvider embeddedFileProvider = new(typeof(Server).Assembly, "wwwroot");
+            string serverFolder = Path.GetDirectoryName(AppContext.BaseDirectory)!;
 
             WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
-                ApplicationName = serverAssembly.GetName().Name,
-                ContentRootPath = serverFolder,
-                WebRootPath = Path.Combine(serverFolder, "wwwroot")
+                ApplicationName = typeof(Server).Assembly.GetName().Name,
+                ContentRootPath = serverFolder
             });
 
             builder.WebHost.UseStaticWebAssets();
@@ -34,6 +34,9 @@ public class Server
             builder.Services.AddSignalR()
                 .AddJsonProtocol(options =>
                 {
+                    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+
                     options.PayloadSerializerOptions.TypeInfoResolver = EfficientJsonContext.Default;
                 });
             builder.Services.AddLogging(loggingBuilder =>
@@ -42,21 +45,20 @@ public class Server
                 loggingBuilder.SetMinimumLevel(LogLevel.Information);
             });
 
-            // builder.Services.AddServerSideBlazor();
-
-            // builder.Services.AddServerSideBlazor().AddHubOptions(options =>
-            // {
-            //     options.MaximumReceiveMessageSize = 102400;
-            // });
-
-            // builder.Services.AddRazorPages()
-            //     .AddApplicationPart(typeof(BlazorFrontend._Imports).Assembly);
-
             builder.WebHost.UseUrls($"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}");
             _app = builder.Build();
 
             // 2) Routing
-            _app.UseStaticFiles();
+            _app.UseDefaultFiles(new DefaultFilesOptions
+            {
+                FileProvider = embeddedFileProvider,
+                RequestPath = ""
+            });
+            _app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = embeddedFileProvider,
+                RequestPath = ""
+            });
             _app.UseWebSockets();
             _app.UseRouting();
 
@@ -67,28 +69,12 @@ public class Server
             _app.MapGet("/api/hello", () => "Hello from LiveFeedback server!");
 
             // 5) Special deep link fallbacks for WebFrontends
-            _app.MapFallbackToFile("{*path}", "index.html");
-
-            // _app.UseFileServer(new FileServerOptions()
-            // {
-            //     FileProvider = new PhysicalFileProvider(Path.Combine(_app.Environment.ContentRootPath, "wwwroot")),
-            //     RequestPath = "",
-            //     EnableDefaultFiles = true,
-            //     EnableDirectoryBrowsing = false,
-            // });
-
-            // _app.UseStaticFiles(new StaticFileOptions()
-            // {
-            //     FileProvider = new PhysicalFileProvider(Path.Combine(_app.Environment.ContentRootPath, "wwwroot")),
-            //     RequestPath = ""
-            // });
-
+            _app.MapFallbackToFile("{*path}", "index.html", new StaticFileOptions
+            {
+                FileProvider = embeddedFileProvider
+            });
 
             _app.Logger.LogInformation("Trying to start server…");
-
-            // _app.MapBlazorHub();
-
-            // _app.MapFallbackToPage("/_Host");
 
             if (mode == Mode.Distributed)
             {
@@ -107,7 +93,7 @@ public class Server
         }
         catch (Exception e)
         {
-            _app.Logger.LogError("Failed to start server: {EMessage}", e.Message);
+            Console.WriteLine(e);
         }
     }
 

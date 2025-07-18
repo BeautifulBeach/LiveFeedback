@@ -1,18 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
+        <PublishAot>true</PublishAot>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Library</OutputType>
         <GenerateStaticWebAssetsManifest>true</GenerateStaticWebAssetsManifest>
+        <GenerateEmbeddedFilesManifest>true</GenerateEmbeddedFilesManifest>
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\Enums\"/>
+        <EmbeddedResource Include="wwwroot\**\*"/>
     </ItemGroup>
     
     <ItemGroup>
-        <ProjectReference Include="..\LiveFeedback.BlazorFrontend\LiveFeedback.BlazorFrontend.csproj"/>
+        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.7"/>
         <ProjectReference Include="..\LiveFeedback.Shared\LiveFeedback.Shared.csproj"/>
     </ItemGroup>
 
@@ -22,11 +24,11 @@
         <VueInstallDependencies>bun install</VueInstallDependencies>
         <VueBuildCommand>bun run build</VueBuildCommand>
     </PropertyGroup>
-    
+
     <!-- Include the web front end when creating the solution -->
     <Target Name="BuildVue" BeforeTargets="GenerateStaticWebAssetsManifest">
-        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueInstallDependencies)" />
-        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueBuildCommand)" />
+        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueInstallDependencies)"/>
+        <Exec WorkingDirectory="$(VueRoot)" Command="$(VueBuildCommand)"/>
     </Target>
 
 </Project>
