@@ -8,6 +8,7 @@ public static class Messages
     public const string NewRating = "NewRating";
     public const string PersistClientId = "PersistClientId";
     public const string PersistLectureId = "PersistLectureId";
+    public const string NewLectures = "NewLectures";
 }
 
 public static class Constants

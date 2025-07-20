@@ -58,11 +58,12 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
                 : "reconnected");
 
         await Clients.Caller.SendAsync(Messages.PersistLectureId, client.CurrentLectureId);
+        await Clients.Caller.SendAsync(Messages.NewLectures, LectureService.GetLecturesUserIsConnectedTo(client.Id));
 
         if (client.IsPresenter)
         {
             if (connectionType == ConnectionType.Reconnect)
-                Console.WriteLine("Presenter reconnected!");
+                logger.LogDebug("Presenter reconnected!");
         }
         else
         {

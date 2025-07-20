@@ -1,7 +1,9 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr'
-import type { InjectionKey } from 'vue'
+import { type InjectionKey } from 'vue'
 import { messages, serverSideFunctions, storageKeys } from '@/static/consts.ts'
 import type { RatingMessage } from '@/models/ratingMessage.ts'
+import { Lecture } from '@/models/lecture.ts'
+import { lectures } from '@/services/state.ts'
 
 export const signalRKey: InjectionKey<SignalRService> = Symbol('signalR')
 
@@ -53,6 +55,11 @@ export class SignalRService {
     hubConnection.on(messages.persistLectureId, id => {
       this._lectureId = id
       localStorage.setItem(storageKeys.lectureId, id)
+    })
+
+    hubConnection.on(messages.newLectures, (newLectures: Lecture[]) => {
+      lectures.value = newLectures.map(l => new Lecture(l.id, l.name, l.room))
+      console.log('New lectures arrived: ', JSON.stringify(newLectures))
     })
 
     return hubConnection
