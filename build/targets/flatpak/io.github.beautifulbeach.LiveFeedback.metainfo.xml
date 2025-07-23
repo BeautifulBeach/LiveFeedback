@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.beautifulbeach.LiveFeedback</id>
+
+    <name>LiveFeedback</name>
+    <summary>A program to get real-time feedback on comprehensibility during presentations</summary>
+
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+
+    <description>
+        <p>
+            Live feedback allows lecturers or teachers to obtain real-time feedback on comprehensibility during a lecture. To do this, the program is started, a web interface is provided in the background and the program displays a QR code that the audience can scan to access the web interface. There they can use a continuous slider to adjust the comprehensibility from “too easy” to “just right” to “too difficult”. The average value of all listeners is bundled and displayed as an overlay color code on the presenter&apos;s PC. Red means too difficult, blue too easy and green just right. This allows the presenter to react spontaneously if the audience is not following along and to ask the audience what the problem is. On the other hand, he can speed things up if he recognizes that the listeners are underchallenged and thus save valuable time for both sides.
+        </p>
+    </description>
+
+    <launchable type="desktop-id">io.github.beautifulbeach.LiveFeedback.desktop</launchable>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://github.com/BeautifulBeach/LiveFeedback/build/targets/assets/screenshot1.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://github.com/BeautifulBeach/LiveFeedback/build/targets/assets/screenshot2.png</image>
+        </screenshot>
+        <screenshot>
+            <image>https://github.com/BeautifulBeach/LiveFeedback/build/targets/assets/screenshot3.png</image>
+        </screenshot>
+    </screenshots>
+</component>

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "livefeedbackpackager": {
+      "version": "1.1.4",
+      "commands": [
+        "build-package"
+      ],
+      "rollForward": false
+    }
+  }
+}

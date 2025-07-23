@@ -5,14 +5,21 @@ obj/
 .env
 *.DotSettings.user
 */wwwroot/*
+*/Properties/launchSettings.json
 
 # JS frontend
 node_modules/
 dist/
-build/
 .vite/
 
 package-lock.json
 bun.lock
 .env.local
 .env.*.local
+
+# build
+.flatpak-builder
+build/out/*/*
+build/targets/flatpak/flatpak-build/*
+build/targets/flatpak/flatpak-repo/*
+build/targets/flatpak/io.github.beautifulbeach.LiveFeedback.yaml

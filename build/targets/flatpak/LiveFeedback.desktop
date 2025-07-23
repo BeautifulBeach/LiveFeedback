@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=LiveFeedback
+Exec=/app/LiveFeedback.Desktop
+Icon=io.github.beautifulbeach.LiveFeedback
+Categories=Education;
+Terminal=false

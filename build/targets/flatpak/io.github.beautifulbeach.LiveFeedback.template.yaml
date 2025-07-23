@@ -1,0 +1,52 @@
+id: io.github.beautifulbeach.LiveFeedback
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: /app/LiveFeedback.Desktop
+modules:
+  - name: icons
+    buildsystem: simple
+    build-commands:
+      - install -D logo.svg /app/share/icons/hicolor/scalable/apps/io.github.beautifulbeach.LiveFeedback.svg
+      - install -D logo.png /app/share/icons/hicolor/512x512/apps/io.github.beautifulbeach.LiveFeedback.png
+    sources: 
+      - type: file
+        dest-filename: logo.svg
+        path: ../../../LiveFeedback.Desktop/Assets/logo.svg
+      - type: file
+        dest-filename: logo.png
+        path: ../../../LiveFeedback.Desktop/Assets/logo.png
+        
+  - name: desktop-file
+    buildsystem: simple
+    build-commands:
+        - install -D LiveFeedback.desktop /app/share/applications/io.github.beautifulbeach.LiveFeedback.desktop
+    sources:
+      - type: file
+        dest-filename: LiveFeedback.desktop
+        path: ./LiveFeedback.desktop
+          
+  - name: metainfo-file
+    buildsystem: simple
+    build-commands:
+        - install -D metainfo.xml /app/share/metainfo/io.github.beautifulbeach.LiveFeedback.metainfo.xml
+    sources:
+      - type: file
+        dest-filename: metainfo.xml
+        path: ./io.github.beautifulbeach.LiveFeedback.metainfo.xml
+          
+  - name: main
+    buildsystem: simple
+    build-commands:
+      - cp -r publish/* /app/
+      - chmod +x /app/LiveFeedback.Desktop
+    sources:
+      - type: dir
+        dest: publish
+        path: ../../../LiveFeedback.Desktop/bin/Release/net{{dotnet-version}}.0/linux-{{architecture}}/publish
+
+finish-args:
+  - --device=dri
+  - --share=network
+  - --share=ipc
+  - --socket=x11
