@@ -5,14 +5,12 @@ using System;
 using LiveFeedback.Core;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection; 
 
 namespace LiveFeedback.Services;
 
 public class AppState : ReactiveObject
 {
-    private string _lectureId = "";
-
     private static readonly LocalConfigService LocalConfigService =
         Program.Services.GetRequiredService<LocalConfigService>();
 
@@ -37,11 +35,17 @@ public class AppState : ReactiveObject
                 LocalConfigService.SaveMode(newMode);
             });
     }
-
-    public string LectureId
+    
+    private Lecture _currentLecture = new()
     {
-        get => _lectureId;
-        set => this.RaiseAndSetIfChanged(ref _lectureId, value);
+        Name = LocalConfigService.GetEventName(),
+        Room = LocalConfigService.GetRoom(),
+    };
+    
+    public Lecture CurrentLecture
+    {
+        get => _currentLecture;
+        set => this.RaiseAndSetIfChanged(ref _currentLecture, value);
     }
 
     private string _clientId = "";

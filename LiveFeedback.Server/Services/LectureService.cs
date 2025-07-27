@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.AspNetCore.SignalR;
 using Client = LiveFeedback.Shared.Models.Client;
 using Lecture = LiveFeedback.Shared.Models.Lecture;
 
@@ -9,11 +10,13 @@ public abstract class LectureService
     private static readonly ConcurrentDictionary<string, Lecture> Lectures = new();
     private static readonly Shared.GlobalConfig GlobalConfig = new();
 
-    public static string StartNewLecture(Client initialPresenter)
+    public static string StartNewLecture(Client initialPresenter, HubCallerContext context)
     {
         Lecture lecture = new()
         {
             Id = Guid.NewGuid().ToString(),
+            Name = context.GetHttpContext()?.Request.Query["lectureName"].ToString().Trim() ?? "",
+            Room = context.GetHttpContext()?.Request.Query["lectureRoom"].ToString().Trim() ?? "",
         };
 
         lecture.ConnectedPresenters.TryAdd(initialPresenter.Id, initialPresenter);
@@ -144,6 +147,18 @@ public abstract class LectureService
         }
     }
 
+    public static void UpdateLectureMetadata(Lecture lecture)
+    {
+        if (!Lectures.TryGetValue(lecture.Id, out Lecture? innerLecture))
+            return;
+
+        lock (innerLecture)
+        {
+            innerLecture.Name = lecture.Name;
+            innerLecture.Room = lecture.Room;
+        }
+    }
+
     public static Lecture? GetLecture(string lectureId)
     {
         Lectures.TryGetValue(lectureId, out Lecture? lecture);
@@ -166,6 +181,14 @@ public abstract class LectureService
             .SelectMany(l => l.Value.ConnectedPresenters
                 .Select(p => p.Value.ConnectionId)
             ).ToArray();
+    }
+
+    public static string[] GetConnectionIdsOfLectureMembers(string lectureId)
+    {
+        return Lectures.Where(l => l.Key == lectureId)
+            .SelectMany(l =>
+                l.Value.ConnectedClients.Concat(l.Value.ConnectedPresenters)
+                    .Select(presenterOrClient => presenterOrClient.Value.ConnectionId)).ToArray();
     }
 
     public static List<Lecture> GetCurrentLectures()

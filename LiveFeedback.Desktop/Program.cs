@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia;
-using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;
 using LiveFeedback.ViewModels;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LiveFeedback;
 
-internal sealed class Program
+internal static class Program
 {
     public static readonly IServiceProvider Services = ConfigureServices();
 
@@ -48,6 +47,7 @@ internal sealed class Program
             builder.SetMinimumLevel(LogLevel.Information);
         });
         services.AddSingleton<LocalConfigService>();
+        services.AddSingleton<AppState>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<MainWindowViewModel>();
         services.AddTransient<OverlayWindow>();
@@ -55,7 +55,6 @@ internal sealed class Program
         services.AddSingleton<OverlayWindowService>();
         services.AddSingleton<SignalRService>();
         services.AddSingleton<ServerService>();
-        services.AddSingleton<AppState>();
         services.AddSingleton<PositionSelectorViewModel>();
         services.AddSingleton<SettingsWindowViewModel>();
         services.AddTransient<SettingsWindow>();

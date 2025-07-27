@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import router from '@/router'
 import { lectures } from '@/services/state.ts'
 
 watch(lectures, (newLectures) => {
   if (newLectures.length === 1) {
-    router.push(`/lecture/${newLectures[0].id}`)
+    // router.push(`/lecture/${newLectures[0].id}`)
   }
 })
 </script>
@@ -19,8 +18,8 @@ watch(lectures, (newLectures) => {
         <div class="lectures-list">
           <RouterLink :to="`/lecture/${lecture.id}`" v-for="lecture in lectures" :key="lecture.id"
                       class="lecture">
-            <div>{{ lecture.name ?? 'Unbenannt' }}</div>
-            <div>Raum: {{ lecture.room ?? 'Keine Angabe' }}</div>
+            <div>{{ lecture.name.trim() == '' ? 'Unbenannt' : lecture.name.trim() }}</div>
+            <div>Raum: {{ lecture.room.trim() == '' ? 'Keine Angabe' : lecture.room.trim() }}</div>
             <div v-if="lecture.room === null && lecture.name === null">Veranstaltungs-ID: {{ lecture.id }}</div>
           </RouterLink>
         </div>

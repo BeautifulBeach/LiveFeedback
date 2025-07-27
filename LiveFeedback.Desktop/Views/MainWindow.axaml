@@ -58,28 +58,33 @@
                 </StackPanel>
 
                 <!-- Right part (options) -->
-                <Grid Grid.Column="2" RowDefinitions="Auto, Auto">
+                <Grid Grid.Column="2" RowDefinitions="Auto, Auto, Auto">
                     <!-- Right part, Section 1  -->
                     <Border Grid.Row="0" Padding="40" Classes="section" Margin="0,0,0,10"
                             CornerRadius="5">
-                        <Grid ColumnDefinitions="Auto, *, Auto" RowDefinitions="Auto, Auto" RowSpacing="20">
+                        <Grid ColumnDefinitions="Auto, *, Auto"
+                              RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto">
                             <!--  Minimal Participants  -->
                             <Label Grid.Column="0" Grid.Row="0" Width="NaN" VerticalAlignment="Center">Mindesteilnehmerzahl:</Label>
                             <TextBox Grid.Column="2" Grid.Row="0" x:Name="MinimalUserCountInput" TextAlignment="Center"
-                                     VerticalAlignment="Center" HorizontalAlignment="Center"
+                                     VerticalAlignment="Center" HorizontalAlignment="Right"
                                      Text="{Binding MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Width="120"
                                      CornerRadius="5"
                                      VerticalContentAlignment="Center"
                                      HorizontalContentAlignment="Center" />
 
+                            <!-- Spacer -->
+                            <Rectangle Grid.Column="2" Grid.Row="1" Height="20"></Rectangle>
+
                             <!--  Sensitivity settings  -->
-                            <Label Grid.Column="0" Grid.Row="1" Width="NaN" VerticalAlignment="Center">Empfindlichkeit:</Label>
-                            <ComboBox Grid.Column="2" Grid.Row="1" x:Name="SensitivitySelector"
+                            <Label Grid.Column="0" Grid.Row="2" Width="NaN" VerticalAlignment="Center">Empfindlichkeit:</Label>
+                            <ComboBox Grid.Column="2" Grid.Row="2" x:Name="SensitivitySelector"
                                       ItemsSource="{Binding Items}"
                                       SelectedItem="{Binding AppState.Sensitivity, Mode=TwoWay}"
                                       Width="120"
                                       CornerRadius="5"
+                                      HorizontalAlignment="Right"
                                       HorizontalContentAlignment="Center"
                                       VerticalContentAlignment="Center">
                                 <ComboBox.ItemTemplate>
@@ -89,18 +94,41 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
+                            
+                            <!-- Spacer -->
+                            <Rectangle Grid.Column="2" Grid.Row="3" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
+
+                            <!-- room name settings -->
+                            <Label Grid.Column="0" Grid.Row="4" IsVisible="{Binding IsDistributedMode}">Raum:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="4" IsVisible="{Binding IsDistributedMode}"
+                                     Text="{Binding Room}" Width="120" Watermark="Raum"
+                                     TextAlignment="Center"
+                                     HorizontalAlignment="Right">
+                            </TextBox>
+                            
+                            <!-- Spacer -->
+                            <Rectangle Grid.Column="2" Grid.Row="5" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
+
+                            <!-- event name settings-->
+                            <Label Grid.Column="0" Grid.Row="6" IsVisible="{Binding IsDistributedMode}">Veranstaltung:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="6" IsVisible="{Binding IsDistributedMode}"
+                                     Text="{Binding EventName}" Width="120"
+                                     TextAlignment="Center"
+                                     Watermark="Name">
+                            </TextBox>
                         </Grid>
                     </Border>
-                    <!-- Right part, Section 2, only visible when stoped -->
-                    <Border Grid.Row="1"
+
+                    <!-- Right part, Section 3, only visible when stoped -->
+                    <Border Grid.Row="2"
                             IsVisible="{Binding AppState.ServerState, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Stopped}}"
                             Classes="section" Padding="20"
                             CornerRadius="5">
                         <controls:PositionControl />
                     </Border>
 
-                    <!-- Right part, Section 3, only visible when started -->
-                    <Border Grid.Row="1" Classes="section" Padding="40" CornerRadius="5"
+                    <!-- Right part, Section 4, only visible when started -->
+                    <Border Grid.Row="2" Classes="section" Padding="40" CornerRadius="5"
                             IsVisible="{Binding AppState.ServerState, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Running}}">
                         <StackPanel>
                             <TextPresenter

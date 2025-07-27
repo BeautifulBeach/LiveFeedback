@@ -16,8 +16,8 @@ namespace LiveFeedback.Services;
 
 public class LocalConfigService
 {
-    private readonly string _configDir = GetConfigDirectory();
-    private readonly string _configPath;
+    private static readonly string ConfigDir = GetConfigDirectory();
+    private static readonly string ConfigPath = Path.Combine(ConfigDir, "liveFeedbackConf.json");
     private readonly ILogger<App> _logger;
     private readonly GlobalConfig _globalConfig;
     private LocalConfig _config;
@@ -27,15 +27,14 @@ public class LocalConfigService
         _logger = logger;
         _globalConfig = globalConfig;
         _config = DefaultConfig();
-        if (!Directory.Exists(_configDir))
+        if (!Directory.Exists(ConfigDir))
         {
-            Directory.CreateDirectory(_configDir);
+            Directory.CreateDirectory(ConfigDir);
         }
 
-        _configPath = Path.Combine(_configDir, "liveFeedbackConf.json");
-        if (!File.Exists(_configPath))
+        if (!File.Exists(ConfigPath))
         {
-            using (File.Create(_configPath))
+            using (File.Create(ConfigPath))
             {
             }
         }
@@ -48,7 +47,7 @@ public class LocalConfigService
         {
             _config = DefaultConfig();
             await WriteConfigFile(_config);
-            _logger.LogInformation("Created default config file at {Path}", _configPath);
+            _logger.LogInformation("Created default config file at {Path}", ConfigPath);
         }
         else
         {
@@ -105,7 +104,7 @@ public class LocalConfigService
 
     private static LocalConfig DefaultConfig()
     {
-        return new LocalConfig()
+        return new LocalConfig
         {
             Mode = Mode.Local,
             Sensitivity = Sensitivity.High,
@@ -120,7 +119,7 @@ public class LocalConfigService
     {
         try
         {
-            return await File.ReadAllTextAsync(_configPath);
+            return await File.ReadAllTextAsync(ConfigPath);
         }
         catch (Exception e)
         {
@@ -134,7 +133,7 @@ public class LocalConfigService
         try
         {
             string data = JsonSerializer.Serialize(config, JsonContext.Default.LocalConfig);
-            await File.WriteAllTextAsync(_configPath, data);
+            await File.WriteAllTextAsync(ConfigPath, data);
         }
         catch (Exception e)
         {
@@ -190,6 +189,22 @@ public class LocalConfigService
         Task.Run(() => WriteConfigFile(_config));
     }
 
+    public void SaveRoomName(string room)
+    {
+        if (_config.Room == room)
+            return;
+        _config.Room = room;
+        Task.Run(() => WriteConfigFile(_config));
+    }
+
+    public void SaveEventName(string eventName)
+    {
+        if (_config.EventName == eventName)
+            return;
+        _config.EventName = eventName;
+        Task.Run(() => WriteConfigFile(_config));
+    }
+
     public void AddExternalServer(ServerConfig serverConfig)
     {
         if (_config.ExternalServers.Contains(serverConfig))
@@ -226,5 +241,15 @@ public class LocalConfigService
     public List<ServerConfig> GetExternalServers()
     {
         return _config.ExternalServers;
+    }
+
+    public string GetRoom()
+    {
+        return _config.Room;
+    }
+
+    public string GetEventName()
+    {
+        return _config.EventName;
     }
 }

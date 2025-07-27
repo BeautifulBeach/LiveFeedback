@@ -12,8 +12,7 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
     public override async Task OnConnectedAsync()
     {
         logger.LogDebug("Client wants to connect…");
-        if (!sliderHubHelpers.TryDetermineClient(Context, out Client client, out ConnectionType connectionType,
-                out List<Lecture> _))
+        if (!sliderHubHelpers.TryDetermineClient(Context, out Client client, out ConnectionType connectionType))
         {
             logger.LogError("Client could not be determined. This can occur when clientId was null or empty.");
         }
@@ -27,7 +26,7 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
             case ConnectionType.FirstConnect:
                 if (client.IsPresenter)
                 {
-                    sliderHubHelpers.HandlePresenterFirstConnect(client);
+                    sliderHubHelpers.HandlePresenterFirstConnect(client, Context);
                 }
                 else
                 {
@@ -58,7 +57,7 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
                 : "reconnected");
 
         await Clients.Caller.SendAsync(Messages.PersistLectureId, client.CurrentLectureId);
-        await Clients.Caller.SendAsync(Messages.NewLectures, LectureService.GetLecturesUserIsConnectedTo(client.Id));
+        await Clients.Caller.SendAsync(Messages.NewLectures, LectureService.GetCurrentLectures());
 
         if (client.IsPresenter)
         {
@@ -90,7 +89,7 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
             return null;
 
         ushort[] individualRatings = lecture.ConnectedClients.Values.Select(c => c.Rating).ToArray();
-        return new ComprehensibilityInformation()
+        return new ComprehensibilityInformation
         {
             IndividualRatings = individualRatings,
             OverallRating = Evaluator.OverallRating(individualRatings),
@@ -108,17 +107,14 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
 
         LectureService.UpdateRating(comprehensibilityMessage.ClientId, comprehensibilityMessage.Rating);
         logger.LogDebug(
-            "Got new rating from client {ClientId} for lecture {LectureId}: {Rating}"
-            , comprehensibilityMessage.ClientId, comprehensibilityMessage.LectureId, comprehensibilityMessage.Rating);
+            "Got new rating from client {ClientId} for lecture {LectureId}: {Rating}",
+            comprehensibilityMessage.ClientId, comprehensibilityMessage.LectureId, comprehensibilityMessage.Rating);
         ComprehensibilityInformation? info = BuildInfoFromConnectedUsers(comprehensibilityMessage.LectureId);
         if (info == null)
         {
             logger.LogWarning("Comprehensibility info is null, can't be sent to presenters");
             return;
         }
-
-        // logger.LogDebug("Sending new info to presenter(s): {Info}",
-        //     JsonSerializer.Serialize(info));
 
         await SendNewInfoToPresenters(info, comprehensibilityMessage.LectureId);
     }
@@ -142,6 +138,13 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
         LectureService.ResetLecture(lectureId);
     }
 
+    // "Endpoint" for presenters to update presentation room or name
+    public void UpdateLectureMetadata(Lecture lecture)
+    {
+        LectureService.UpdateLectureMetadata(lecture);
+        Clients.All.SendAsync(Messages.NewLectures, new List<Lecture> { lecture });
+    }
+
     public void DeleteLecture(string lectureId)
     {
         LectureService.DeleteLecture(lectureId);
@@ -149,8 +152,7 @@ public class SliderHub(ILogger<Server> logger, SliderHubHelpers sliderHubHelpers
 
     private async Task SendNewInfoToPresenters(ComprehensibilityInformation info, string lectureId)
     {
-        var a = LectureService.GetPresenterConnectionIds(lectureId);
-        await Clients.Clients(a)
+        await Clients.Clients(LectureService.GetPresenterConnectionIds(lectureId))
             .SendAsync(Messages.NewRating, info);
     }
 }

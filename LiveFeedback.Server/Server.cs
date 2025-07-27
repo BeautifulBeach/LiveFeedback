@@ -1,4 +1,3 @@
-using System.Reflection;
 using LiveFeedback.Server.Services.SignalR;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
@@ -30,6 +29,11 @@ public class Server
 
             // 1) Services
             builder.Services.AddSingleton<GlobalConfig>();
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
+                loggingBuilder.SetMinimumLevel(LogLevel.Information);
+            });
             builder.Services.AddSingleton<SliderHubHelpers>();
             builder.Services.AddSignalR()
                 .AddJsonProtocol(options =>
@@ -39,11 +43,6 @@ public class Server
 
                     options.PayloadSerializerOptions.TypeInfoResolver = EfficientJsonContext.Default;
                 });
-            builder.Services.AddLogging(loggingBuilder =>
-            {
-                loggingBuilder.AddConsole();
-                loggingBuilder.SetMinimumLevel(LogLevel.Information);
-            });
 
             builder.WebHost.UseUrls($"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}");
             _app = builder.Build();

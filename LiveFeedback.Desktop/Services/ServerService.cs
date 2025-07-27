@@ -31,7 +31,7 @@ public class ServerService(
             }
 
             await _signalRService.ConnectAsync();
-            await _signalRService.ResetLecture(_appState.LectureId);
+            await _signalRService.ResetLecture(_appState.CurrentLecture.Id);
         }
         catch (Exception e)
         {
@@ -46,7 +46,7 @@ public class ServerService(
 
         try
         {
-            await _signalRService.DeleteLecture(_appState.LectureId);
+            await _signalRService.DeleteLecture(_appState.CurrentLecture.Id);
             await _signalRService.DisconnectAsync();
             if (globalConfig.Mode == Mode.Local)
                 await _server.StopAsync(); // local server

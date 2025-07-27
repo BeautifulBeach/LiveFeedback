@@ -8,11 +8,13 @@ namespace LiveFeedback.Models;
 public class LocalConfig
 {
     public ushort MinimalUserCount { get; set; } = 1;
-    public OverlayPosition OverlayPosition { get; set; }  = OverlayPosition.BottomRight;
+    public OverlayPosition OverlayPosition { get; set; } = OverlayPosition.BottomRight;
     public Mode Mode { get; set; } = Mode.Local;
     public Sensitivity Sensitivity { get; set; } = Sensitivity.High;
     public ServerConfig? ExternalServer { get; set; }
     public List<ServerConfig> ExternalServers { get; set; } = [];
+    public string EventName { get; set; } = "";
+    public string Room { get; set; } = "";
 }
 
 public class ServerConfig
@@ -20,9 +22,8 @@ public class ServerConfig
     public string Name { get; set; } = "";
     public required string Host { get; set; }
     public required ushort Port { get; set; }
-    
-    [JsonIgnore]
-    public string Url => $"http://{Host}:{Port}";
+
+    [JsonIgnore] public string Url => $"http://{Host}:{Port}";
 }
 
 public class LocalConfigValidator : AbstractValidator<LocalConfig>
@@ -55,6 +56,14 @@ public class LocalConfigValidator : AbstractValidator<LocalConfig>
 
         RuleForEach(x => x.ExternalServers)
             .SetValidator(new ServerConfigValidator());
+        
+        RuleFor(x => x.EventName)
+            .NotNull()
+            .WithMessage("EventName must not be null (but can be an empty string).");
+        
+        RuleFor(x => x.Room)
+            .NotNull()
+            .WithMessage("Room must not be null (but can be an empty string).");
     }
 }
 
