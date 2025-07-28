@@ -17,14 +17,14 @@ public class ColorConverter : IValueConverter
         double normalized = v / 100.0;
 
         // Color stops
-        Color[] stops = new[]
-        {
+        Color[] stops =
+        [
             Color.FromArgb(255, 0, 50, 255),
             Color.FromArgb(255, 0, 200, 180),
             Color.FromArgb(200, 0, 200, 0),
             Color.FromArgb(255, 255, 210, 0),
             Color.FromArgb(220, 220, 20, 30)
-        };
+        ];
 
         // Relative positions of the stopps (normalized)
         double[] positions = [0.0, 0.25, 0.50, 0.75, 1.0];

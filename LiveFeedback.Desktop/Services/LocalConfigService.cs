@@ -149,11 +149,11 @@ public class LocalConfigService
             return _config.ExternalServer ?? _config.ExternalServers.First();
         }
 
-        return new ServerConfig()
+        return new ServerConfig
         {
             Name = "local",
             Host = _globalConfig.ServerHost,
-            Port = _globalConfig.ServerPort,
+            Port = _globalConfig.ServerPort
         };
     }
 

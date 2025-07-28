@@ -16,10 +16,7 @@ public class ServerService(
     AppState appState,
     GlobalConfig globalConfig)
 {
-    private readonly AppState _appState = appState;
-    private readonly ILogger<App> _logger = logger;
     private readonly LiveFeedback.Server.Server _server = new();
-    private readonly SignalRService _signalRService = signalRService;
 
     public async Task StartServerAsync()
     {
@@ -30,30 +27,30 @@ public class ServerService(
                 await _server.StartAsync(); // local server
             }
 
-            await _signalRService.ConnectAsync();
-            await _signalRService.ResetLecture(_appState.CurrentLecture.Id);
+            await signalRService.ConnectAsync();
+            await signalRService.ResetLecture(appState.CurrentLecture.Id);
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to start local server or to connect to it: {EMessage}", e.Message);
+            logger.LogError("Failed to start local server or to connect to it: {EMessage}", e.Message);
         }
     }
 
     public async Task StopServerAsync()
     {
-        if (_appState.ServerState != ServerState.Running)
+        if (appState.ServerState != ServerState.Running)
             return;
 
         try
         {
-            await _signalRService.DeleteLecture(_appState.CurrentLecture.Id);
-            await _signalRService.DisconnectAsync();
+            await signalRService.DeleteLecture(appState.CurrentLecture.Id);
+            await signalRService.DisconnectAsync();
             if (globalConfig.Mode == Mode.Local)
                 await _server.StopAsync(); // local server
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to disconnect from server or to stop local server: {EMessage}", e.Message);
+            logger.LogError("Failed to disconnect from server or to stop local server: {EMessage}", e.Message);
         }
     }
 }

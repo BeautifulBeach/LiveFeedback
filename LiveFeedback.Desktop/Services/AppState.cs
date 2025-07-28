@@ -2,10 +2,11 @@
 using LiveFeedback.Shared.Models;
 using ReactiveUI;
 using System;
+using System.Threading.Tasks;
 using LiveFeedback.Core;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
-using Microsoft.Extensions.DependencyInjection; 
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
 
@@ -35,13 +36,13 @@ public class AppState : ReactiveObject
                 LocalConfigService.SaveMode(newMode);
             });
     }
-    
+
     private Lecture _currentLecture = new()
     {
         Name = LocalConfigService.GetEventName(),
-        Room = LocalConfigService.GetRoom(),
+        Room = LocalConfigService.GetRoom()
     };
-    
+
     public Lecture CurrentLecture
     {
         get => _currentLecture;
