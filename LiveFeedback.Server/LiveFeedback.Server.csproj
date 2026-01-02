@@ -21,8 +21,8 @@
     <!-- Variables for WebFrontend  -->
     <PropertyGroup>
         <VueRoot>WebFrontend\</VueRoot>
-        <VueInstallDependencies>bun install</VueInstallDependencies>
-        <VueBuildCommand>bun run build</VueBuildCommand>
+        <VueInstallDependencies>npm install</VueInstallDependencies>
+        <VueBuildCommand>npm run build</VueBuildCommand>
     </PropertyGroup>
 
     <!-- Include the web front end when creating the solution -->

@@ -10,6 +10,7 @@
         <TrimMode>link</TrimMode>
         <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
         <RootNamespace>LiveFeedback</RootNamespace>
+        <StartupObject>LiveFeedback.Program</StartupObject>
     </PropertyGroup>
 
     <ItemGroup>

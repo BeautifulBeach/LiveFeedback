@@ -17,7 +17,7 @@ public class SliderHubHelpers(ILogger<Server> logger)
         client = new Client();
         HttpContext? httpContext = context.GetHttpContext();
         connectionType = ConnectionType.Reconnect;
-        if (httpContext == null)
+        if (httpContext == null)    
         {
             logger.LogError("Lecture couldn't be found");
             return false;

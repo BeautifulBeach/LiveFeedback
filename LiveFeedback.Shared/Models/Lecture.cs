@@ -10,4 +10,4 @@ public class Lecture
     public string Room { get; set; } = "";
     [JsonIgnore] public ConcurrentDictionary<string, Client> ConnectedClients { get; } = [];
     [JsonIgnore] public ConcurrentDictionary<string, Client> ConnectedPresenters { get; } = [];
-};
+}
