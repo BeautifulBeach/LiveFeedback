@@ -3,7 +3,7 @@
     <id>io.github.beautifulbeach.LiveFeedback</id>
 
     <name>LiveFeedback</name>
-    <summary>A program to get real-time feedback on comprehensibility during presentations</summary>
+    <summary>Get real-time feedback on comprehensibility during presentations</summary>
 
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0-or-later</project_license>

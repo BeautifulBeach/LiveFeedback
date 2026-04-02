@@ -9,4 +9,5 @@ namespace LiveFeedback.Shared.Models;
 [JsonSerializable(typeof(MessageCarrier<string>))]
 [JsonSerializable(typeof(MessageCarrier<ushort>))]
 [JsonSerializable(typeof(RatingMessage<ushort>))]
+[JsonSerializable(typeof(Task))]
 public partial class EfficientJsonContext : JsonSerializerContext;

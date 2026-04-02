@@ -1,0 +1,9 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Id="io.github.beautifulbeach.LiveFeedback"
+             Version="0.0.2"
+             Name="LiveFeedback"
+             Manufacturer="BeautifulBeach"
+             UpgradeCode="bb6c5cd8-474f-4046-8c60-f730e21ea3b6">
+
+    </Package>
+</Wix>

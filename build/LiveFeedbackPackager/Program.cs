@@ -1,144 +1,89 @@
 using System.Diagnostics;
-using LiveFeedbackPackager;
+using LiveFeedbackPackager.Linux;
+using LiveFeedbackPackager.Shared;
+using static LiveFeedbackPackager.Shared.Shared;
 
-OS operatingSystem = DetermineOs();
+namespace LiveFeedbackPackager;
 
-if (operatingSystem == OS.MacOs)
+public abstract class LiveFeedbackPackager
 {
-    Console.WriteLine("Packaging for MacOS is not currently supported. Feel free to implement it.");
-    Environment.Exit(1);
-}
-
-if (operatingSystem == OS.Other)
-{
-    Console.WriteLine(
-        "Packaging for other operating systems than Linux and Windows is not currently supported. Feel free to implement it.");
-    Environment.Exit(1);
-}
-
-Console.WriteLine($"Building packages for {operatingSystem}…");
-
-if (SkipCompile() == false)
-{
-    BuildAndCompile();
-}
-
-// Actual build
-switch (operatingSystem)
-{
-    case OS.Linux:
-        Linux.BuildAndBundleFlatpak();
-        break;
-    case OS.Windows:
-        Windows.BuildMsix();
-        break;
-    default:
-        throw new NotSupportedException();
-}
-
-return;
-
-OS DetermineOs()
-{
-    if (OperatingSystem.IsLinux())
+    public static void Main(string[] args)
     {
-        return OS.Linux;
-    }
-    else if (OperatingSystem.IsWindows())
-    {
-        return OS.Windows;
-    }
-    else if (OperatingSystem.IsMacOS())
-    {
-        return OS.MacOs;
-    }
-    else
-    {
-        return OS.Other;
-    }
-}
+        var buildEnvironmentInfo = new BuildEnvironmentInfo();
 
-string? DetermineProjectRoot()
-{
-    for (int i = 0; i < args.Length; i++)
-    {
-        if (args[i].Contains("root-dir"))
+        if (buildEnvironmentInfo.OperatingSystem == Os.MacOs)
         {
-            if (i >= -1 && i + 1 < args.Length)
+            Console.WriteLine("Packaging for MacOS is not currently supported. Feel free to implement it.");
+            Environment.Exit(1);
+        }
+
+        if (buildEnvironmentInfo.OperatingSystem == Os.Other)
+        {
+            Console.WriteLine(
+                "Packaging for other operating systems than Linux and Windows is not currently supported. Feel free to implement it.");
+            Environment.Exit(1);
+        }
+
+        Console.WriteLine($"Building packages for {buildEnvironmentInfo.OperatingSystem}…");
+
+        if (SkipCompile(args) == false)
+        {
+            // dotnet publish but automated
+            BuildAndCompile(buildEnvironmentInfo);
+        }
+
+        // Build of the installable package
+        switch (buildEnvironmentInfo.OperatingSystem)
+        {
+            case Os.Linux:
+                var linuxBuilder = new LinuxBuilder(buildEnvironmentInfo);
+                linuxBuilder.BuildAndBundleFlatpak();
+                break;
+            case Os.Windows:
+                Windows.Windows.BuildMsi();
+                break;
+            default:
+                throw new NotSupportedException();
+        }
+    }
+
+    private static void BuildAndCompile(BuildEnvironmentInfo buildEnvironmentInfo)
+    {
+        var publishProcess = new Process
+        {
+            StartInfo = new ProcessStartInfo
             {
-                string path = args[i + 1];
-                if (Directory.Exists(path))
-                {
-                    return path;
-                }
-                else
-                {
-                    Console.WriteLine($"Path {path} does not exist.");
-                    Environment.Exit(1);
-                }
+                FileName = "dotnet",
+                Arguments = "publish -c Release",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             }
-        }
-    }
+        };
 
-    return null;
-}
+        Console.WriteLine($"publish folder: {buildEnvironmentInfo.PublishFolder}");
+        publishProcess.StartInfo.WorkingDirectory = Path.Join(buildEnvironmentInfo.ProjectRoot, "LiveFeedback.Desktop");
 
-string DeterminePublishFolder()
-{
-    string osName = operatingSystem switch
-    {
-        OS.Linux => "linux",
-        OS.Windows => "win",
-        OS.MacOs => "osx",
-        _ => throw new ArgumentOutOfRangeException()
-    };
-    string rootDir = DetermineProjectRoot() ?? Directory.GetCurrentDirectory();
-    string architecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString().ToLower();
-    return Path.Combine(rootDir, "LiveFeedback.Desktop", "bin", "Release", "net9.0", $"{osName}-{architecture}",
-        "publish");
-}
+        publishProcess.Start();
 
-void BuildAndCompile()
-{
-    string? projectRoot = DetermineProjectRoot();
-    Process publishProcess = new Process
-    {
-        StartInfo = new ProcessStartInfo
+        string output = publishProcess.StandardOutput.ReadToEnd().Trim();
+        string errors = publishProcess.StandardError.ReadToEnd().Trim();
+
+        Console.WriteLine("Compiling project in release mode…");
+        publishProcess.WaitForExit();
+        if (publishProcess.ExitCode != 0)
         {
-            FileName = "dotnet",
-            Arguments = "publish -c Release",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
+            Console.WriteLine($"dotnet publish failed with code {publishProcess.ExitCode}");
+            if (output != "")
+            {
+                Console.WriteLine($"\nBuild output: {output}");
+            }
+            if (errors != "")
+            {
+                Console.WriteLine($"\nBuild errors: {errors}");
+            }
+            Environment.Exit(1);
         }
-    };
 
-    Console.WriteLine($"publish folder: {DeterminePublishFolder()}");
-    if (projectRoot != null)
-    {
-        publishProcess.StartInfo.WorkingDirectory = projectRoot;
+        Console.WriteLine("Compiled successfully.");
     }
-
-    publishProcess.Start();
-    Console.WriteLine("Compiling project in release mode…");
-    publishProcess.WaitForExit();
-    if (publishProcess.ExitCode != 0)
-    {
-        Console.WriteLine("dotnet publish failed");
-        Environment.Exit(1);
-    }
-
-    Console.WriteLine("Compiled successfully.");
-}
-
-bool SkipCompile()
-{
-    return args.Any(t => t.Contains("--skip-compile"));
-}
-
-enum OS
-{
-    Linux,
-    MacOs,
-    Windows,
-    Other
 }
