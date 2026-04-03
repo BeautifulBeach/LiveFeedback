@@ -25,7 +25,7 @@ KDE, do not support this feature, while others, such as GNOME and Windows, do; m
 3. Navigate to the LiveFeedback.Desktop folder and execute `dotnet run` for development, `dotnet publish` for release
    builds.
 
-By default `PublishAot` is enable for faster startups. You can disable it in `LiveFeedback.csproj` if you experience
+By default `PublishAot` is enable for faster startups. You can disable it in `LiveFeedback.Desktop.csproj` if you experience
 issues to use the classic JIT compiled mode instead or to cross compile for other operating systems. This requires a
 valid runtime to be present on the target machine though.
 
