@@ -70,7 +70,14 @@ public class LinuxBuilder
 
         flatpakBundleProcess.Close();
         string outPath = Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "flatpak");
-        Console.WriteLine($"Flatpak was build successfully. You can find it in {outPath}");
+        Console.Write("Flatpak was build ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("successfully");
+        Console.ResetColor();
+        Console.Write(". You can find it at ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine(outPath);
+        Console.ResetColor();
     }
 
     private (Process, string) GetFlatpakProcess()

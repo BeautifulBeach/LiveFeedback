@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using LiveFeedbackPackager.Linux;
 using LiveFeedbackPackager.Shared;
+using LiveFeedbackPackager.Windows;
 using static LiveFeedbackPackager.Shared.Shared;
 
 namespace LiveFeedbackPackager;
@@ -40,7 +41,8 @@ public abstract class LiveFeedbackPackager
                 linuxBuilder.BuildAndBundleFlatpak();
                 break;
             case Os.Windows:
-                Windows.Windows.BuildMsi();
+                var windowsBuilder = new WindowsBuilder(buildEnvironmentInfo);
+                windowsBuilder.BuildMsi();
                 break;
             default:
                 throw new NotSupportedException();

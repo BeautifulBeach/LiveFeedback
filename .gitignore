@@ -6,6 +6,7 @@ obj/
 *.DotSettings.user
 */wwwroot/*
 */Properties/launchSettings.json
+.directory
 
 # JS frontend
 node_modules/
@@ -23,4 +24,5 @@ build/out/*/*
 build/targets/flatpak/flatpak-build/*
 build/targets/flatpak/flatpak-repo/*
 build/targets/flatpak/io.github.beautifulbeach.LiveFeedback.yaml
+build/targets/msi/publish/*
 build/LiveFeedbackPackager/nuget-packages

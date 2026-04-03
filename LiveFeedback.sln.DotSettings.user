@@ -12,10 +12,10 @@
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;
   &lt;Assembly Path="/home/xarvo/dev/C#/LiveFeedback/LiveFeedback.Desktop/bin/Debug/net8.0/LiveFeedback.Server.dll" /&gt;
 &lt;/AssemblyExplorer&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0587eed2_002D97df_002D41e8_002Daa4a_002D7446581345b4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="TryDetermineClientTest_ShouldReturnClientAndConnectionType" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;TestAncestor&gt;
-    &lt;TestId&gt;xUnit::2CE9A13A-8369-4567-A02E-AFBA4CD88E11::net9.0::Server.Tests.ServiceTests.SignalRTests.SliderHubHelperTests.TryDetermineClientTest_ShouldReturnClientAndConnectionType&lt;/TestId&gt;
-  &lt;/TestAncestor&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=0587eed2_002D97df_002D41e8_002Daa4a_002D7446581345b4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="TryDetermineClientTest_ShouldReturnClientAndConnectionType" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::2CE9A13A-8369-4567-A02E-AFBA4CD88E11::net9.0::Server.Tests.ServiceTests.SignalRTests.SliderHubHelperTests.TryDetermineClientTest_ShouldReturnClientAndConnectionType&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=beautifulbeach/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=buildsystem/@EntryIndexedValue">True</s:Boolean>

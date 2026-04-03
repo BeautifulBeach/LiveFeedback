@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace LiveFeedbackPackager.Shared;
 
-public class BuildEnvironmentInfo()
+public class BuildEnvironmentInfo
 {
     public Os OperatingSystem { get; } = Shared.DetermineOs();
     public string ProjectRoot { get; } = Shared.GetProjectRoot();

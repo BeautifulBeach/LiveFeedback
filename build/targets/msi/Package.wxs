@@ -1,9 +1,33 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-    <Package Id="io.github.beautifulbeach.LiveFeedback"
-             Version="0.0.2"
-             Name="LiveFeedback"
-             Manufacturer="BeautifulBeach"
-             UpgradeCode="bb6c5cd8-474f-4046-8c60-f730e21ea3b6">
+    <Package Id="io.github.beautifulbeach.LiveFeedback" Name="LiveFeedback"
+             Manufacturer="BeautifulBeach" Version="0.1.0" UpgradeCode="8d3fd8eb-a804-413b-83a8-d4df6615936a">
+        <MajorUpgrade DowngradeErrorMessage="A newer version of LiveFeedback is already installed." />
 
+        <MediaTemplate EmbedCab="yes"/>
+
+        <Property Id="ARPPRODUCTICON" Value="IconFile"/>
+        <Icon Id="IconFile" SourceFile="publish\logo.ico"/>
+
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="LiveFeedback"/>
+        </StandardDirectory>
+
+        <Files Directory="INSTALLFOLDER" Include="publish\*" />
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="AppMenuFolder" Name="LiveFeedback">
+                <Component Id="ApplicationShortcut">
+                    <Shortcut Id="ApplicationStartMenu"
+                              Name="LiveFeedback"
+                              Description="In Echtzeit Rückmeldung zur Verständlichkeit bei Präsentationen erhalten"
+                              Target="[INSTALLFOLDER]LiveFeedback.exe"
+                              WorkingDirectory="INSTALLFOLDER"/>
+                    <RemoveFolder Id="AppMenuFolder" On="uninstall"/>
+                    <RegistryValue Root="HKCU" Key="Software\BeautifulBeach\LiveFeedback" Name="installed" Type="integer"
+                                   Value="1"
+                                   KeyPath="yes"/>
+                </Component>
+            </Directory>
+        </StandardDirectory>
     </Package>
 </Wix>
