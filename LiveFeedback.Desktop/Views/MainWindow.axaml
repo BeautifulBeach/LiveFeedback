@@ -36,7 +36,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition
                         Width="{Binding AppState.ServerState, Converter={StaticResource ServerStateToGridLengthConverter}}" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="{Binding QrSeparatorColumnWidth}" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <!-- Left part (QR-Code) -->
@@ -60,7 +60,7 @@
                 <!-- Right part (options) -->
                 <Grid Grid.Column="2" RowDefinitions="Auto, Auto, Auto">
                     <!-- Right part, Section 1  -->
-                    <Border Grid.Row="0" Padding="40" Classes="section" Margin="0,0,0,10"
+                    <Border Grid.Row="0" Padding="40" Classes="section" Margin="0,0,0,20"
                             CornerRadius="5">
                         <Grid ColumnDefinitions="Auto, *, Auto"
                               RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto">
@@ -119,10 +119,10 @@
                         </Grid>
                     </Border>
 
-                    <!-- Right part, Section 3, only visible when stoped -->
+                    <!-- Right part, Section 3, only visible when stopped -->
                     <Border Grid.Row="2"
                             IsVisible="{Binding AppState.ServerState, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Stopped}}"
-                            Classes="section" Padding="20"
+                            Classes="section" Padding="40 20 20 20"
                             CornerRadius="5">
                         <controls:PositionControl />
                     </Border>

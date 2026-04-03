@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using LiveFeedback.Converters.InputValidators;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
@@ -73,10 +74,7 @@ public class MainWindowViewModel : ReactiveObject
             .Subscribe(newLectureId => { FrontenUrl = $"{AppState.CurrentServer.Url}/lecture/{newLectureId}"; });
 
         AppState.WhenAnyValue(x => x.Mode)
-            .Subscribe(newMode =>
-            {
-                IsDistributedMode = newMode == Mode.Distributed;
-            });
+            .Subscribe(newMode => { IsDistributedMode = newMode == Mode.Distributed; });
     }
 
     private bool _isDistributedMode;
@@ -119,6 +117,12 @@ public class MainWindowViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _eventName, value);
     }
 
+    public GridLength QrSeparatorColumnWidth
+    {
+        get;
+        set => this.RaiseAndSetIfChanged(ref field, value);
+    } = new(0);
+
     public async Task ToggleServerState() // start when stopped and stop when running
     {
         switch (AppState.ServerState)
@@ -130,6 +134,7 @@ public class MainWindowViewModel : ReactiveObject
                 await Task.WhenAll(_serverService.StartServerAsync(),
                     _overlayWindowService.ShowWindowOnAllScreensAsync(AppState.OverlayPosition));
                 AppState.ServerState = ServerState.Running;
+                QrSeparatorColumnWidth = new GridLength(20);
                 break;
             case ServerState.Running:
                 _logger.LogDebug("User wants server to be stoped");
@@ -139,6 +144,7 @@ public class MainWindowViewModel : ReactiveObject
                     _overlayWindowService.HideWindowOnAllScreensAsync());
                 AppState.ServerState = ServerState.Stopped;
                 AppState.CurrentComprehensibility = ComprehensibilityInformation.Default();
+                QrSeparatorColumnWidth = new GridLength(0);
                 break;
             case ServerState.Stopping:
                 _logger.LogDebug("Server is being stopped, command is ignored");
