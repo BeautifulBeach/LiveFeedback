@@ -3,7 +3,9 @@
 LiveFeedback is a program that allows learners to give real-time feedback on comprehensibility during a lecture. The
 lecturer/teacher starts the main program on the PC on which the presentation is being given, a QR code can be scanned by
 the audience, which takes them to a web portal from which they can use a slider to adjust the comprehensibility from
-“too easy” to “just right” to “too difficult”.
+“too easy” to “just right” to “too difficult”. The group's average rating is displayed as a colored, movable overlay
+that appears on top of all windows, including presentation programs in full-screen mode (some Linux desktops, such as
+KDE, do not support this feature, while others, such as GNOME and Windows, do; macOS support is unknown).
 
 ![Stopped presentation presenter control view](./build/targets/assets/screenshot2.png)
 ![Running presentation presenter control view](./build/targets/assets/screenshot1.png)
@@ -14,7 +16,7 @@ the audience, which takes them to a web portal from which they can use a slider 
 ## Prerequisites
 
 - .NET 10 SDK + runtime
-- Node environment and npm
+- JS runtime and npm
 
 ## First steps:
 
