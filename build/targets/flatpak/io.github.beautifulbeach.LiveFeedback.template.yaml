@@ -2,7 +2,7 @@ id: io.github.beautifulbeach.LiveFeedback
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
-command: /app/LiveFeedback.Desktop
+command: /app/LiveFeedback
 modules:
   - name: icons
     buildsystem: simple
@@ -39,11 +39,11 @@ modules:
     buildsystem: simple
     build-commands:
       - cp -r publish/* /app/
-      - chmod +x /app/LiveFeedback.Desktop
+      - chmod +x /app/LiveFeedback
     sources:
       - type: dir
         dest: publish
-        path: ../../../LiveFeedback.Desktop/bin/Release/net{{dotnet-version}}.0/linux-{{architecture}}/publish
+        path: ./flatpak-temp
 
 finish-args:
   - --device=dri

@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=LiveFeedback
-Exec=/app/LiveFeedback.Desktop
+Exec=/app/LiveFeedback
 Icon=io.github.beautifulbeach.LiveFeedback
 Categories=Education;
 Terminal=false

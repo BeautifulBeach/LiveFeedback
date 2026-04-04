@@ -11,6 +11,7 @@ public class LinuxBuilder
     private string FlatpakRepoDir { get; }
     private string FlatpakBuildDir { get; }
     private string ManifestPath { get; }
+    private string FlatpakTempPath { get; }
     private BuildEnvironmentInfo BuildEnvironmentInfo { get; }
 
     public LinuxBuilder(BuildEnvironmentInfo buildEnvironmentInfo)
@@ -20,14 +21,13 @@ public class LinuxBuilder
         FlatpakRepoDir = Path.Combine(FlatpakPath, "flatpak-repo");
         FlatpakBuildDir = Path.Combine(FlatpakPath, "flatpak-build");
         ManifestPath = Path.Combine(FlatpakPath, $"{AppId}.yaml");
+        FlatpakTempPath = Path.Combine(FlatpakPath, "flatpak-temp");
     }
 
     public void BuildAndBundleFlatpak()
     {
-        bool success = BuildManifestFileFromTemplateFile();
-        if (!success)
-            Environment.Exit(2);
-
+        CopyFilesToFlatpakTemp();
+        BuildManifestFileFromTemplateFile();
 
         (Process flatpakBuildProcess, string flatpakBuilderCommand) = GetFlatpakProcess();
         flatpakBuildProcess.Start();
@@ -82,7 +82,8 @@ public class LinuxBuilder
 
     private (Process, string) GetFlatpakProcess()
     {
-        var arguments = $"--force-clean --repo={FlatpakRepoDir} --default-branch=stable {FlatpakBuildDir} {ManifestPath}";
+        var arguments =
+            $"--force-clean --repo={FlatpakRepoDir} --default-branch=stable {FlatpakBuildDir} {ManifestPath}";
         Process process = new()
         {
             StartInfo = new ProcessStartInfo
@@ -99,7 +100,8 @@ public class LinuxBuilder
 
     private (Process, string) GetFlatpakBundleProcess()
     {
-        var arguments = $"build-bundle {FlatpakRepoDir} {Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "flatpak", "LiveFeedback.flatpak")} {AppId} stable";
+        var arguments =
+            $"build-bundle {FlatpakRepoDir} {Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "flatpak", "LiveFeedback.flatpak")} {AppId} stable";
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -128,6 +130,28 @@ public class LinuxBuilder
         {
             Console.WriteLine($"Failed to build manifest file from template: {e.Message}");
             return false;
+        }
+    }
+
+    private void CopyFilesToFlatpakTemp()
+    {
+        if (!Directory.Exists(FlatpakTempPath))
+            Directory.CreateDirectory(FlatpakTempPath);
+
+        if (Directory.GetFiles(FlatpakTempPath).Length != 0)
+        {
+            Directory.Delete(FlatpakTempPath, true);
+            Directory.CreateDirectory(FlatpakTempPath);
+        }
+
+        var sourceFolder = new DirectoryInfo(BuildEnvironmentInfo.PublishFolder);
+
+        foreach (FileInfo file in sourceFolder.GetFiles())
+        {
+            if (file.Extension == ".pdb" || file.Extension == ".dbg" || file.Directory?.Name != "publish")
+                continue;
+            Console.WriteLine($"Copying {file.Name} to {FlatpakTempPath}");
+            file.CopyTo(Path.Combine(FlatpakTempPath, file.Name), true);
         }
     }
 }
