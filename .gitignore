@@ -24,5 +24,7 @@ build/out/*/*
 build/targets/flatpak/flatpak-build/*
 build/targets/flatpak/flatpak-repo/*
 build/targets/flatpak/io.github.beautifulbeach.LiveFeedback.yaml
+build/targets/flatpak/flatpak-temp
 build/targets/msi/publish/*
+build/targets/msi/Package.wxs
 build/LiveFeedbackPackager/nuget-packages

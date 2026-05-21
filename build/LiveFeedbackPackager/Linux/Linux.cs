@@ -24,7 +24,7 @@ public class LinuxBuilder
         FlatpakTempPath = Path.Combine(FlatpakPath, "flatpak-temp");
     }
 
-    public void BuildAndBundleFlatpak()
+    public void BuildAndBundleFlatpak(string version)
     {
         CopyFilesToFlatpakTemp();
         BuildManifestFileFromTemplateFile();
@@ -49,7 +49,7 @@ public class LinuxBuilder
         }
 
         flatpakBuildProcess.Close();
-        (Process flatpakBundleProcess, string flatpakBundleCommand) = GetFlatpakBundleProcess();
+        (Process flatpakBundleProcess, string flatpakBundleCommand) = GetFlatpakBundleProcess(version);
         flatpakBundleProcess.Start();
         Console.WriteLine("Finished flatpak build, bundling…");
 
@@ -98,10 +98,12 @@ public class LinuxBuilder
         return (process, $"flatpak-builder {arguments}");
     }
 
-    private (Process, string) GetFlatpakBundleProcess()
+    private (Process, string) GetFlatpakBundleProcess(string version)
     {
+        var outPath = Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "flatpak", "LiveFeedback.flatpak");
+        var arch = BuildEnvironmentInfo.Architecture.ToString().ToLower();
         var arguments =
-            $"build-bundle {FlatpakRepoDir} {Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "flatpak", "LiveFeedback.flatpak")} {AppId} stable";
+            $"build-bundle --arch {arch} {FlatpakRepoDir} {outPath} {AppId} {version}";
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -122,7 +124,7 @@ public class LinuxBuilder
             string templateText = File.ReadAllText(Path.Combine(FlatpakPath, $"{AppId}.template.yaml"));
             templateText = templateText.Replace("{{dotnet-version}}", Shared.Shared.GetDotnetMajorVersion());
             templateText =
-                templateText.Replace("{{architecture}}", RuntimeInformation.OSArchitecture.ToString().ToLower());
+                templateText.Replace("{{architecture}}", BuildEnvironmentInfo.Architecture.ToString().ToLower());
             File.WriteAllText(Path.Combine(FlatpakPath, $"{AppId}.yaml"), templateText);
             return true;
         }

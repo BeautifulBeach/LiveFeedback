@@ -1,15 +1,22 @@
 using System.Diagnostics;
+using CommandLine;
 using LiveFeedbackPackager.Linux;
 using LiveFeedbackPackager.Shared;
 using LiveFeedbackPackager.Windows;
-using static LiveFeedbackPackager.Shared.Shared;
 
 namespace LiveFeedbackPackager;
 
 public abstract class LiveFeedbackPackager
 {
-    public static void Main(string[] args)
+    public static void Main(string[] rawArgs)
     {
+        var parseResult = Parser.Default.ParseArguments<CliArgs>(rawArgs);
+        if (parseResult.Errors.Any())
+        {
+            Environment.Exit(1);
+        }
+        CliArgs args = parseResult.Value;
+
         var buildEnvironmentInfo = new BuildEnvironmentInfo();
 
         if (buildEnvironmentInfo.OperatingSystem == Os.MacOs)
@@ -25,9 +32,9 @@ public abstract class LiveFeedbackPackager
             Environment.Exit(1);
         }
 
-        Console.WriteLine($"Building packages for {buildEnvironmentInfo.OperatingSystem}…");
+        Console.WriteLine($"Building packages for {buildEnvironmentInfo.OperatingSystem} in version {args.Version}…");
 
-        if (SkipCompile(args) == false)
+        if (!args.SkipCompile)
         {
             // dotnet publish but automated
             BuildAndCompile(buildEnvironmentInfo);
@@ -38,11 +45,11 @@ public abstract class LiveFeedbackPackager
         {
             case Os.Linux:
                 var linuxBuilder = new LinuxBuilder(buildEnvironmentInfo);
-                linuxBuilder.BuildAndBundleFlatpak();
+                linuxBuilder.BuildAndBundleFlatpak(args.Version);
                 break;
             case Os.Windows:
                 var windowsBuilder = new WindowsBuilder(buildEnvironmentInfo);
-                windowsBuilder.BuildMsi();
+                windowsBuilder.BuildMsi(args.Version);
                 break;
             default:
                 throw new NotSupportedException();
@@ -79,10 +86,12 @@ public abstract class LiveFeedbackPackager
             {
                 Console.WriteLine($"\nBuild output: {output}");
             }
+
             if (errors != "")
             {
                 Console.WriteLine($"\nBuild errors: {errors}");
             }
+
             Environment.Exit(1);
         }
 

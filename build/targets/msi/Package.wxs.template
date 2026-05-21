@@ -1,6 +1,6 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
     <Package Id="io.github.beautifulbeach.LiveFeedback" Name="LiveFeedback"
-             Manufacturer="BeautifulBeach" Version="0.1.0" UpgradeCode="8d3fd8eb-a804-413b-83a8-d4df6615936a">
+             Manufacturer="BeautifulBeach" Version="{{VERSION}}" UpgradeCode="8d3fd8eb-a804-413b-83a8-d4df6615936a">
         <MajorUpgrade DowngradeErrorMessage="A newer version of LiveFeedback is already installed." />
 
         <MediaTemplate EmbedCab="yes"/>

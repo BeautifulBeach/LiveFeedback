@@ -15,9 +15,10 @@ public class WindowsBuilder
     }
 
 
-    public void BuildMsi()
+    public string BuildMsi(string version)
     {
         CopyFilesToMsiBuildTarget();
+        BuildPackageFileFromTemplateFile(version);
         DotnetClean();
         const string arguments = "build --configuration Release";
         Process dotnetBuildProcess = new()
@@ -44,12 +45,12 @@ public class WindowsBuilder
                 Console.WriteLine($"\nBuild output: {output}");
             if (errors != "")
                 Console.WriteLine($"\nBuild errors: {errors}");
-            return;
+            Environment.Exit(1);
         }
 
         dotnetBuildProcess.Close();
         var outPath =
-            new FileInfo(Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "msi", "LiveFeedback.msi"));
+            new FileInfo(Path.Combine(BuildEnvironmentInfo.ProjectRoot, "build", "out", "msi", $"LiveFeedback-{version}-{BuildEnvironmentInfo.Architecture.ToString().ToLower()}.msi"));
         if (!Directory.Exists(outPath.DirectoryName) && outPath.DirectoryName != null)
         {
             Directory.CreateDirectory(outPath.DirectoryName);
@@ -65,6 +66,7 @@ public class WindowsBuilder
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(outPath);
         Console.ResetColor();
+        return outPath.FullName;
     }
 
     private void CopyFilesToMsiBuildTarget()
@@ -114,5 +116,12 @@ public class WindowsBuilder
         };
         cleanProcess.Start();
         cleanProcess.WaitForExit();
+    }
+
+    private void BuildPackageFileFromTemplateFile(string version)
+    {
+        var templateText = File.ReadAllText(Path.Combine(MsiPath, "Package.wxs.template"));
+        templateText = templateText.Replace("{{VERSION}}", version);
+        File.WriteAllText(Path.Combine(MsiPath, "Package.wxs"), templateText);
     }
 }

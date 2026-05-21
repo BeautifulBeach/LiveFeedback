@@ -5,6 +5,7 @@ namespace LiveFeedbackPackager.Shared;
 public class BuildEnvironmentInfo
 {
     public Os OperatingSystem { get; } = Shared.DetermineOs();
+    public Architecture Architecture { get; } = RuntimeInformation.OSArchitecture;
     public string ProjectRoot { get; } = Shared.GetProjectRoot();
     public string DotnetMajorVersion { get; } = Shared.GetDotnetMajorVersion();
     public string PublishFolder { get; } = Shared.GetPublishFolder();
