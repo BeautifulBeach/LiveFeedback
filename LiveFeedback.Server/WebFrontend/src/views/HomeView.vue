@@ -14,11 +14,11 @@ watch(lectures, (newLectures) => {
     <div class="center-frame">
       <h2 v-if="lectures.length === 0">Aktuell können keine laufenden Veranstaltungen gefunden werden</h2>
       <div v-else>
-        <h1>Wähle die passende Veranstaltung:</h1>
+        <h1>Laufende Veranstaltungen:</h1>
         <div class="lectures-list">
           <RouterLink :to="`/lecture/${lecture.id}`" v-for="lecture in lectures" :key="lecture.id"
                       class="lecture">
-            <div>{{ lecture.name.trim() == '' ? 'Unbenannt' : lecture.name.trim() }}</div>
+            <div v-if="lecture.name.trim() !== ''">{{ lecture.name.trim() }}</div>
             <div>Raum: {{ lecture.room.trim() == '' ? 'Keine Angabe' : lecture.room.trim() }}</div>
             <div v-if="lecture.room === null && lecture.name === null">Veranstaltungs-ID: {{ lecture.id }}</div>
           </RouterLink>
