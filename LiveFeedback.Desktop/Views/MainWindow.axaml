@@ -94,18 +94,18 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                            
+
                             <!-- Spacer -->
                             <Rectangle Grid.Column="2" Grid.Row="3" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
 
                             <!-- room name settings -->
                             <Label Grid.Column="0" Grid.Row="4" IsVisible="{Binding IsDistributedMode}">Raum:</Label>
                             <TextBox Grid.Column="2" Grid.Row="4" IsVisible="{Binding IsDistributedMode}"
-                                     Text="{Binding Room}" Width="120" Watermark="Keine Angabe"
+                                     Text="{Binding Room}" Width="120" PlaceholderText="Keine Angabe"
                                      TextAlignment="Center"
                                      HorizontalAlignment="Right">
                             </TextBox>
-                            
+
                             <!-- Spacer -->
                             <Rectangle Grid.Column="2" Grid.Row="5" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
 
@@ -114,7 +114,7 @@
                             <TextBox Grid.Column="2" Grid.Row="6" IsVisible="{Binding IsDistributedMode}"
                                      Text="{Binding EventName}" Width="120"
                                      TextAlignment="Center"
-                                     Watermark="Unbenannt">
+                                     PlaceholderText="Unbenannt">
                             </TextBox>
                         </Grid>
                     </Border>
