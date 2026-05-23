@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using LiveFeedback.Converters.InputValidators;
-using LiveFeedback.Services;
 using LiveFeedback.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 

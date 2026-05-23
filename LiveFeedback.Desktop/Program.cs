@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
 using LiveFeedback.Services;
@@ -8,7 +7,6 @@ using LiveFeedback.ViewModels;
 using LiveFeedback.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ReactiveUI.Avalonia;
 
 namespace LiveFeedback;
 
@@ -35,12 +33,7 @@ internal static class Program
         return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
-            .LogToTrace()
-            .UseReactiveUI(rxAppBuilder =>
-            {
-                rxAppBuilder
-                    .WithViewsFromAssembly(Assembly.GetExecutingAssembly());
-            }).RegisterReactiveUIViewsFromEntryAssembly();
+            .LogToTrace();
     }
 
     private static ServiceProvider ConfigureServices()

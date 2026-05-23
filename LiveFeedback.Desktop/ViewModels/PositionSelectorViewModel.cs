@@ -1,55 +1,35 @@
 using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
-using ReactiveUI;
 
 namespace LiveFeedback.ViewModels;
 
-public class PositionSelectorViewModel : ReactiveObject
+public partial class PositionSelectorViewModel : ObservableObject
 {
-    private readonly AppState _appState;
+    [ObservableProperty] private partial AppState AppState { get; set; }
+
     private readonly LocalConfigService _localConfigService;
 
-    private string _blBtnColor;
+    [ObservableProperty] public partial string BlBtnColor { get; set; }
 
-    private string _brBtnColor;
+    [ObservableProperty]
+    public partial string BrBtnColor { get; set; }
 
-    private string _tlBtnColor;
+    [ObservableProperty]
+    public partial string TlBtnColor { get; set; }
 
-    private string _trBtnColor;
+    [ObservableProperty]
+    public partial string TrBtnColor { get; set; }
 
     public PositionSelectorViewModel(AppState appState, LocalConfigService localConfigService)
     {
-        _appState = appState;
+        AppState = appState;
         _localConfigService = localConfigService;
-        _tlBtnColor = BtnColor("tl");
-        _trBtnColor = BtnColor("tr");
-        _brBtnColor = BtnColor("br");
-        _blBtnColor = BtnColor("bl");
-    }
-
-    public string TrBtnColor
-    {
-        get => _trBtnColor;
-        set => this.RaiseAndSetIfChanged(ref _trBtnColor, value);
-    }
-
-    public string TlBtnColor
-    {
-        get => _tlBtnColor;
-        set => this.RaiseAndSetIfChanged(ref _tlBtnColor, value);
-    }
-
-    public string BlBtnColor
-    {
-        get => _blBtnColor;
-        set => this.RaiseAndSetIfChanged(ref _blBtnColor, value);
-    }
-
-    public string BrBtnColor
-    {
-        get => _brBtnColor;
-        set => this.RaiseAndSetIfChanged(ref _brBtnColor, value);
+        TlBtnColor = BtnColor("tl");
+        TrBtnColor = BtnColor("tr");
+        BrBtnColor = BtnColor("br");
+        BlBtnColor = BtnColor("bl");
     }
 
     public void SelectCornerCommand(string corner)
@@ -58,25 +38,25 @@ public class PositionSelectorViewModel : ReactiveObject
         switch (corner)
         {
             case "tl":
-                _appState.OverlayPosition = OverlayPosition.TopLeft;
+                AppState.OverlayPosition = OverlayPosition.TopLeft;
                 TlBtnColor = "DodgerBlue";
                 break;
             case "tr":
-                _appState.OverlayPosition = OverlayPosition.TopRight;
+                AppState.OverlayPosition = OverlayPosition.TopRight;
                 TrBtnColor = "DodgerBlue";
                 break;
             case "bl":
-                _appState.OverlayPosition = OverlayPosition.BottomLeft;
+                AppState.OverlayPosition = OverlayPosition.BottomLeft;
                 BlBtnColor = "DodgerBlue";
                 break;
             case "br":
-                _appState.OverlayPosition = OverlayPosition.BottomRight;
+                AppState.OverlayPosition = OverlayPosition.BottomRight;
                 BrBtnColor = "DodgerBlue";
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        _localConfigService.SaveOverlayPosition(_appState.OverlayPosition);
+        _localConfigService.SaveOverlayPosition(AppState.OverlayPosition);
     }
 
     private void DeactivateAnyButton()
@@ -89,7 +69,7 @@ public class PositionSelectorViewModel : ReactiveObject
 
     private string BtnColor(string btn)
     {
-        return _appState.OverlayPosition switch
+        return AppState.OverlayPosition switch
         {
             OverlayPosition.TopLeft => btn == "tl" ? "DodgerBlue" : "Transparent",
             OverlayPosition.TopRight => btn == "tr" ? "DodgerBlue" : "Transparent",

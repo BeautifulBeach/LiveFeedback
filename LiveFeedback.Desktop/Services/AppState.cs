@@ -1,122 +1,93 @@
-﻿using LiveFeedback.Models;
-using LiveFeedback.Shared.Models;
-using ReactiveUI;
-using System;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using LiveFeedback.Core;
+using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
+using LiveFeedback.Shared.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
 
-public class AppState : ReactiveObject
+public partial class AppState : ObservableObject
 {
     private static readonly LocalConfigService LocalConfigService =
         Program.Services.GetRequiredService<LocalConfigService>();
 
     public AppState()
     {
-        _currentServer = LocalConfigService.GetPreferredServerConfig(Mode);
-        this.WhenAnyValue(x => x.MinimalUserCount)
-            .Subscribe(newCount => { LocalConfigService.SaveMinimalUserCount(newCount); });
-
-        this.WhenAnyValue(x => x.Sensitivity)
-            .Subscribe(newSensitivity =>
-            {
-                CurrentComprehensibility =
-                    Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, newSensitivity);
-                LocalConfigService.SaveSensitivity(newSensitivity);
-            });
-
-        this.WhenAnyValue(x => x.Mode)
-            .Subscribe(newMode =>
-            {
-                CurrentServer = LocalConfigService.GetPreferredServerConfig(newMode);
-                LocalConfigService.SaveMode(newMode);
-            });
+        CurrentServer = LocalConfigService.GetPreferredServerConfig(Mode);
+        EnoughParticipants = CurrentUserCount() >= MinimalUserCount;
     }
 
-    private Lecture _currentLecture = new()
+    [ObservableProperty]
+    public partial Lecture CurrentLecture { get; set; } = new()
     {
         Name = LocalConfigService.GetEventName(),
         Room = LocalConfigService.GetRoom()
     };
 
-    public Lecture CurrentLecture
-    {
-        get => _currentLecture;
-        set => this.RaiseAndSetIfChanged(ref _currentLecture, value);
-    }
+    [ObservableProperty] public partial string ClientId { get; set; } = "";
 
-    private string _clientId = "";
-
-    public string ClientId
-    {
-        get => _clientId;
-        set => this.RaiseAndSetIfChanged(ref _clientId, value);
-    }
-
-    private ComprehensibilityInformation _currentComprehensibility = new()
+    [ObservableProperty]
+    public partial ComprehensibilityInformation CurrentComprehensibility { get; set; } = new()
     {
         IndividualRatings = [],
         OverallRating = Constants.DefaultRating,
         UsersInvolved = 0
     };
 
-    public ComprehensibilityInformation CurrentComprehensibility
+    [ObservableProperty] public partial ServerState ServerState { get; set; } = ServerState.Stopped;
+
+
+    [ObservableProperty]
+    public partial OverlayPosition OverlayPosition { get; set; } = LocalConfigService.GetOverlayPosition();
+
+    [ObservableProperty] public partial Sensitivity Sensitivity { get; set; } = LocalConfigService.GetSensitivity();
+
+    [ObservableProperty] public partial Mode Mode { get; set; } = LocalConfigService.GetMode();
+
+    [ObservableProperty]
+    public partial bool IsDistributedMode { get; set; } = LocalConfigService.GetMode() == Mode.Distributed;
+
+    [ObservableProperty]
+    public partial ushort MinimalUserCount { get; set; } = LocalConfigService.GetMinimalUserCount();
+
+    [ObservableProperty] public partial ServerConfig CurrentServer { get; set; }
+
+    [ObservableProperty]
+    public partial string FrontenUrl { get; set; }
+    
+    [ObservableProperty]
+    public partial bool EnoughParticipants { get; set; }
+
+
+    partial void OnMinimalUserCountChanged(ushort value)
     {
-        get => _currentComprehensibility;
-        set => this.RaiseAndSetIfChanged(ref _currentComprehensibility, value);
+        LocalConfigService.SaveMinimalUserCount(value);
+        EnoughParticipants = CurrentUserCount() >= MinimalUserCount;
     }
 
-
-    private ServerState _serverState = ServerState.Stopped;
-
-    public ServerState ServerState
+    partial void OnSensitivityChanged(Sensitivity value)
     {
-        get => _serverState;
-        set => this.RaiseAndSetIfChanged(ref _serverState, value);
+        CurrentComprehensibility =
+            Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, value);
+        LocalConfigService.SaveSensitivity(value);
     }
 
-
-    private OverlayPosition _overlayPosition = LocalConfigService.GetOverlayPosition();
-
-    public OverlayPosition OverlayPosition
+    partial void OnCurrentLectureChanged(Lecture value)
     {
-        get => _overlayPosition;
-        set => this.RaiseAndSetIfChanged(ref _overlayPosition, value);
+        FrontenUrl = $"{CurrentServer.Url}/lecture/{value.Id}";
     }
 
-    private Sensitivity _sensitivity = LocalConfigService.GetSensitivity();
-
-    public Sensitivity Sensitivity
+    partial void OnModeChanged(Mode value)
     {
-        get => _sensitivity;
-        set => this.RaiseAndSetIfChanged(ref _sensitivity, value);
+        CurrentServer = LocalConfigService.GetPreferredServerConfig(value);
+        LocalConfigService.SaveMode(value);
+        IsDistributedMode = value == Mode.Distributed;
     }
 
-    private Mode _mode = LocalConfigService.GetMode();
-
-    public Mode Mode
+    public ushort CurrentUserCount()
     {
-        get => _mode;
-        set => this.RaiseAndSetIfChanged(ref _mode, value);
-    }
-
-    private ushort _minimalUserCount = LocalConfigService.GetMinimalUserCount();
-
-    public ushort MinimalUserCount
-    {
-        get => _minimalUserCount;
-        set => this.RaiseAndSetIfChanged(ref _minimalUserCount, value);
-    }
-
-    private ServerConfig _currentServer;
-
-    public ServerConfig CurrentServer
-    {
-        get => _currentServer;
-        set => this.RaiseAndSetIfChanged(ref _currentServer, value);
+        return (ushort)CurrentComprehensibility.IndividualRatings.Length;
     }
 }

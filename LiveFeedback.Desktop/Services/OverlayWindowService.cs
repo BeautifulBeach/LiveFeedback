@@ -18,18 +18,13 @@ public class OverlayWindowService
 
     public async Task ShowWindowOnAllScreensAsync(OverlayPosition overlayPosition = OverlayPosition.BottomRight)
     {
-        IClassicDesktopStyleApplicationLifetime? desktopLifetime =
-            Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var desktopLifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         if (desktopLifetime == null)
-        {
             return;
-        }
 
         Window? mainWindow = desktopLifetime.MainWindow;
         if (mainWindow == null)
-        {
             return;
-        }
 
         IReadOnlyList<Screen> screens = mainWindow.Screens.All;
 
@@ -37,9 +32,7 @@ public class OverlayWindowService
         {
             OverlayWindow? window = Program.Services.GetService<OverlayWindow>();
             if (window == null)
-            {
                 throw new NullReferenceException("OverlayWindow is null");
-            }
 
             window.DataContext = Program.Services.GetRequiredService<OverlayWindowViewModel>();
             window.WindowStartupLocation = WindowStartupLocation.Manual;
@@ -60,9 +53,9 @@ public class OverlayWindowService
         await Task.CompletedTask;
     }
 
-    public static PixelPoint CalculateWindowPosition(OverlayPosition overlayPosition, Screen screen, Window window)
+    private static PixelPoint CalculateWindowPosition(OverlayPosition overlayPosition, Screen screen, Window window)
     {
-        PixelSize windowSize = PixelSize.FromSize(window.ClientSize, screen.Scaling);
+        var windowSize = new PixelSize((int)window.Width, (int)window.Height);
         PixelRect fullBounds = screen.Bounds;
 
         // Default position: bottom right

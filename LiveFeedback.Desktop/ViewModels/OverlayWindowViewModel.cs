@@ -1,19 +1,14 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using LiveFeedback.Services;
-using ReactiveUI;
 
 namespace LiveFeedback.ViewModels;
 
-public class OverlayWindowViewModel : ReactiveObject
+public partial class OverlayWindowViewModel : ObservableObject
 {
-    public AppState AppState { get; set; }
+    [ObservableProperty] public partial AppState AppState { get; set; }
 
     public OverlayWindowViewModel(AppState appState)
     {
         AppState = appState;
-        AppState.WhenAnyValue(x => x.MinimalUserCount)
-            .Subscribe(newUserCount => { EnoughParticipants = newUserCount >= AppState.MinimalUserCount; });
     }
-    
-    public bool EnoughParticipants { get; set; }
 }

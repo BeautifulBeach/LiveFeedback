@@ -1,127 +1,47 @@
-using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using LiveFeedback.Converters.InputValidators;
+using CommunityToolkit.Mvvm.ComponentModel;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
-using LiveFeedback.Shared.Enums;
 using LiveFeedback.Shared.Models;
 using LiveFeedback.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 
 namespace LiveFeedback.ViewModels;
 
-public class MainWindowViewModel : ReactiveObject
+public partial class MainWindowViewModel : ObservableObject
 {
-    public AppState AppState { get; set; }
+    [ObservableProperty] public partial AppState AppState { get; set; }
 
     public ObservableCollection<Sensitivity> Items { get; } = [Sensitivity.High, Sensitivity.Medium, Sensitivity.Low];
 
     private readonly ServerService _serverService;
     private readonly OverlayWindowService _overlayWindowService;
     private readonly ILogger<App> _logger;
+    private readonly LocalConfigService _localConfigService = Program.Services.GetRequiredService<LocalConfigService>();
+    private readonly SignalRService _signalRService;
 
     public MainWindowViewModel(ServerService serverService, SignalRService signalRService,
         AppState appState,
         OverlayWindowService overlayWindowService,
-        LocalConfigService localConfigService,
         ILogger<App> logger)
     {
         AppState = appState;
-        _isDistributedMode = appState.Mode == Mode.Distributed;
         _serverService = serverService;
         _overlayWindowService = overlayWindowService;
         _logger = logger;
-        _minimalUserCount = appState.MinimalUserCount.ToString();
-        _frontenUrl = $"{AppState.CurrentServer.Url}/lecture/{AppState.CurrentLecture.Id}";
-        _room = localConfigService.GetRoom();
-        _eventName = localConfigService.GetEventName();
-
-        this.WhenAnyValue(x => x.MinimalUserCount)
-            .Subscribe(newUserCount =>
-            {
-                if (General.IsValidNumber<ushort>(newUserCount, out ushort newMinimalUserCount))
-                {
-                    AppState.MinimalUserCount = newMinimalUserCount;
-                }
-                else if (newUserCount.Trim() == "")
-                {
-                    newUserCount = "1";
-                }
-            });
-
-        this.WhenAnyValue(x => x.Room)
-            .Subscribe(newRoomName =>
-            {
-                localConfigService.SaveRoomName(newRoomName);
-                AppState.CurrentLecture.Room = newRoomName;
-                Task.Run(() => signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
-            });
-
-        this.WhenAnyValue(x => x.EventName)
-            .Subscribe(newEventName =>
-            {
-                localConfigService.SaveEventName(newEventName);
-                AppState.CurrentLecture.Name = newEventName;
-                Task.Run(() => signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
-            });
-
-        AppState.WhenAnyValue(x => x.CurrentLecture.Id)
-            .Subscribe(newLectureId => { FrontenUrl = $"{AppState.CurrentServer.Url}/lecture/{newLectureId}"; });
-
-        AppState.WhenAnyValue(x => x.Mode)
-            .Subscribe(newMode => { IsDistributedMode = newMode == Mode.Distributed; });
+        Room = _localConfigService.GetRoom();
+        EventName = _localConfigService.GetEventName();
+        _signalRService = signalRService;
     }
 
-    private bool _isDistributedMode;
+    [ObservableProperty] public partial string Room { get; set; }
 
-    public bool IsDistributedMode
-    {
-        get => _isDistributedMode;
-        set => this.RaiseAndSetIfChanged(ref _isDistributedMode, value);
-    }
-
-    private string _minimalUserCount;
-
-    public string MinimalUserCount
-    {
-        get => _minimalUserCount;
-        set => this.RaiseAndSetIfChanged(ref _minimalUserCount, value);
-    }
-
-    private string _frontenUrl;
-
-    public string FrontenUrl
-    {
-        get => _frontenUrl;
-        set => this.RaiseAndSetIfChanged(ref _frontenUrl, value);
-    }
-
-    private string _room;
-
-    public string Room
-    {
-        get => _room;
-        set => this.RaiseAndSetIfChanged(ref _room, value);
-    }
-
-    private string _eventName;
-
-    public string EventName
-    {
-        get => _eventName;
-        set => this.RaiseAndSetIfChanged(ref _eventName, value);
-    }
-
-    public GridLength QrSeparatorColumnWidth
-    {
-        get;
-        set => this.RaiseAndSetIfChanged(ref field, value);
-    } = new(0);
+    [ObservableProperty] public partial string EventName { get; set; }
+    [ObservableProperty] public partial GridLength QrSeparatorColumnWidth { get; set; } = new(0);
 
     public async Task ToggleServerState() // start when stopped and stop when running
     {
@@ -137,7 +57,7 @@ public class MainWindowViewModel : ReactiveObject
                 QrSeparatorColumnWidth = new GridLength(20);
                 break;
             case ServerState.Running:
-                _logger.LogDebug("User wants server to be stoped");
+                _logger.LogDebug("User wants server to be stopped");
                 AppState.ServerState = ServerState.Stopping;
                 // Stops server and overlay parallel
                 await Task.WhenAll(_serverService.StopServerAsync(),
@@ -166,9 +86,23 @@ public class MainWindowViewModel : ReactiveObject
     {
         ProcessStartInfo psi = new()
         {
-            FileName = FrontenUrl,
+            FileName = AppState.FrontenUrl,
             UseShellExecute = true
         };
         Process.Start(psi);
+    }
+
+    partial void OnRoomChanged(string value)
+    {
+        _localConfigService.SaveRoomName(value);
+        AppState.CurrentLecture.Room = value;
+        Task.Run(() => _signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
+    }
+
+    partial void OnEventNameChanged(string value)
+    {
+        _localConfigService.SaveEventName(value);
+        AppState.CurrentLecture.Name = value;
+        Task.Run(() => _signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
     }
 }

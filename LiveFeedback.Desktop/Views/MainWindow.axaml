@@ -43,7 +43,7 @@
                 <StackPanel Grid.Row="0"
                             IsVisible="{Binding AppState.ServerState,
                              Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static enums:ServerState.Running}}">
-                    <qr:QrCode Data="{Binding FrontenUrl}"
+                    <qr:QrCode Data="{Binding AppState.FrontenUrl}"
                                Foreground="Black"
                                Background="White"
                                CornerRadius="5"
@@ -68,7 +68,7 @@
                             <Label Grid.Column="0" Grid.Row="0" Width="NaN" VerticalAlignment="Center">Mindesteilnehmerzahl:</Label>
                             <TextBox Grid.Column="2" Grid.Row="0" x:Name="MinimalUserCountInput" TextAlignment="Center"
                                      VerticalAlignment="Center" HorizontalAlignment="Right"
-                                     Text="{Binding MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Text="{Binding AppState.MinimalUserCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      Width="120"
                                      CornerRadius="5"
                                      VerticalContentAlignment="Center"
@@ -96,22 +96,26 @@
                             </ComboBox>
 
                             <!-- Spacer -->
-                            <Rectangle Grid.Column="2" Grid.Row="3" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
+                            <Rectangle Grid.Column="2" Grid.Row="3" IsVisible="{Binding AppState.IsDistributedMode}"
+                                       Height="20">
+                            </Rectangle>
 
                             <!-- room name settings -->
-                            <Label Grid.Column="0" Grid.Row="4" IsVisible="{Binding IsDistributedMode}">Raum:</Label>
-                            <TextBox Grid.Column="2" Grid.Row="4" IsVisible="{Binding IsDistributedMode}"
+                            <Label Grid.Column="0" Grid.Row="4" IsVisible="{Binding AppState.IsDistributedMode}">Raum:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="4" IsVisible="{Binding AppState.IsDistributedMode}"
                                      Text="{Binding Room}" Width="120" PlaceholderText="Keine Angabe"
                                      TextAlignment="Center"
                                      HorizontalAlignment="Right">
                             </TextBox>
 
                             <!-- Spacer -->
-                            <Rectangle Grid.Column="2" Grid.Row="5" IsVisible="{Binding IsDistributedMode}" Height="20"></Rectangle>
+                            <Rectangle Grid.Column="2" Grid.Row="5" IsVisible="{Binding AppState.IsDistributedMode}"
+                                       Height="20">
+                            </Rectangle>
 
                             <!-- event name settings-->
-                            <Label Grid.Column="0" Grid.Row="6" IsVisible="{Binding IsDistributedMode}">Veranstaltung:</Label>
-                            <TextBox Grid.Column="2" Grid.Row="6" IsVisible="{Binding IsDistributedMode}"
+                            <Label Grid.Column="0" Grid.Row="6" IsVisible="{Binding AppState.IsDistributedMode}">Veranstaltung:</Label>
+                            <TextBox Grid.Column="2" Grid.Row="6" IsVisible="{Binding AppState.IsDistributedMode}"
                                      Text="{Binding EventName}" Width="120"
                                      TextAlignment="Center"
                                      PlaceholderText="Unbenannt">

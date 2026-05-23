@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ReactiveUI;
 
 namespace LiveFeedback.Services;
 
@@ -50,10 +49,12 @@ public class SignalRService
         _hubConnection.On<string>(Messages.PersistLectureId, data =>
         {
             appState.CurrentLecture.Id = data;
-
-            // Manually trigger the event so that Lecture does not have to be a ReactiveObject,
-            // even though only one attribute changes and not the entire class.
-            appState.RaisePropertyChanged(nameof(AppState.CurrentLecture));
+            appState.CurrentLecture = new Lecture
+            {
+                Id = data,
+                Name = appState.CurrentLecture.Name,
+                Room = appState.CurrentLecture.Room
+            };
         });
     }
 

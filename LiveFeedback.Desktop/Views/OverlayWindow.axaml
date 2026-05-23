@@ -18,7 +18,7 @@
         ExtendClientAreaTitleBarHeightHint="-1"
         Width="50"
         Height="50"
-        IsVisible="{Binding EnoughParticipants}"
+        IsVisible="{Binding AppState.EnoughParticipants}"
         Title="LiveFeedback">
 
     <Window.Resources>
