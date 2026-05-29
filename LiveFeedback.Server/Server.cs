@@ -65,7 +65,7 @@ public class Server
             _app.MapHub<SliderHub>("/slider-hub");
 
             // 4) API
-            _app.MapGet("/api/hello", () => "Hello from LiveFeedback server!");
+            _app.MapGet("/api/hello", () => Constants.HelloMessage);
 
             // 5) Special deep link fallbacks for WebFrontends
             _app.MapFallbackToFile("{*path}", "index.html", new StaticFileOptions
@@ -87,8 +87,6 @@ public class Server
                     "Server running in local mode and assumes that it is running in the same process as the main program.");
                 await _app.StartAsync(); // run server in the background
             }
-
-            _app.Logger.LogInformation("Server started");
         }
         catch (Exception e)
         {

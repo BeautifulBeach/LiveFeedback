@@ -1,6 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;
 using LiveFeedback.ViewModels;
@@ -58,6 +61,13 @@ internal static class Program
         services.AddSingleton<PositionSelectorViewModel>();
         services.AddSingleton<SettingsWindowViewModel>();
         services.AddTransient<SettingsWindow>();
+        services.AddTransient<IClipboard>(_ =>
+        {
+            var lifetime = Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            var topLevel = TopLevel.GetTopLevel(lifetime?.MainWindow);
+            return topLevel?.Clipboard ?? throw new InvalidOperationException("Clipboard is not available yet");
+        });
+
         return services.BuildServiceProvider();
     }
 }

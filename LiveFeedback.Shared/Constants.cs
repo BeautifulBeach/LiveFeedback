@@ -1,5 +1,3 @@
-using Environment = LiveFeedback.Shared.Enums.Environment;
-
 namespace LiveFeedback.Shared;
 
 public static class Messages
@@ -19,4 +17,5 @@ public static class Constants
     public const string EnvironmentEnvName = "LIVE_FEEDBACK_ENVIRONMENT";
     public const string WwwRootPathEnvName = "LIVE_FEEDBACK_WWWROOT";
     public const string ServerPortEnvName = "LIVE_FEEDBACK_SERVER_PORT";
+    public const string HelloMessage = "Hello from LiveFeedback server!";
 }

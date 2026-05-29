@@ -7,6 +7,6 @@ namespace LiveFeedback.Models;
     WriteIndented = true,
     IncludeFields = true
 )]
-[JsonSerializable(typeof(LocalConfig))]
+[JsonSerializable(typeof(DesktopProgramConfig))]
 [JsonSerializable(typeof(ServerConfig))]
 public partial class JsonContext : JsonSerializerContext;

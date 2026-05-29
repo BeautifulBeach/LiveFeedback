@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FluentValidation;
 using FluentValidation.Results;
 using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
+using LiveFeedback.Shared.Records;
 using Microsoft.Extensions.Logging;
 using Environment = System.Environment;
 
@@ -20,7 +20,7 @@ public class LocalConfigService
     private static readonly string ConfigPath = Path.Combine(ConfigDir, "liveFeedbackConf.json");
     private readonly ILogger<App> _logger;
     private readonly GlobalConfig _globalConfig;
-    private LocalConfig _config;
+    private DesktopProgramConfig _config;
 
     public LocalConfigService(ILogger<App> logger, GlobalConfig globalConfig)
     {
@@ -53,8 +53,8 @@ public class LocalConfigService
         {
             try
             {
-                LocalConfig? untestedConfig =
-                    JsonSerializer.Deserialize<LocalConfig>(possibleData, JsonContext.Default.LocalConfig);
+                DesktopProgramConfig? untestedConfig =
+                    JsonSerializer.Deserialize<DesktopProgramConfig>(possibleData, JsonContext.Default.DesktopProgramConfig);
                 if (untestedConfig == null)
                 {
                     throw new NullReferenceException($"{nameof(untestedConfig)} is null");
@@ -67,7 +67,7 @@ public class LocalConfigService
                 }
                 else
                 {
-                    _logger.LogCritical("Invalid config file: {EMessage}", result.Errors);
+                    _logger.LogWarning("Invalid config file: {EMessage}", result.Errors);
                     _logger.LogWarning("Fallback to default config.");
                     _config = DefaultConfig();
                 }
@@ -102,16 +102,18 @@ public class LocalConfigService
         return Path.Combine(configDirectoryPath, "LiveFeedback");
     }
 
-    private static LocalConfig DefaultConfig()
+    private static DesktopProgramConfig DefaultConfig()
     {
-        return new LocalConfig
+        return new DesktopProgramConfig
         {
             Mode = Mode.Local,
             Sensitivity = Sensitivity.High,
             OverlayPosition = OverlayPosition.BottomRight,
             MinimalUserCount = 10,
-            ExternalServer = null,
             ExternalServers = [],
+            SelectedExternalServer = null,
+            EventName = "",
+            Room = ""
         };
     }
 
@@ -128,11 +130,11 @@ public class LocalConfigService
         }
     }
 
-    private async Task WriteConfigFile(LocalConfig config)
+    private async Task WriteConfigFile(DesktopProgramConfig config)
     {
         try
         {
-            string data = JsonSerializer.Serialize(config, JsonContext.Default.LocalConfig);
+            string data = JsonSerializer.Serialize(config, JsonContext.Default.DesktopProgramConfig);
             await File.WriteAllTextAsync(ConfigPath, data);
         }
         catch (Exception e)
@@ -141,20 +143,28 @@ public class LocalConfigService
         }
     }
 
-    public ServerConfig GetPreferredServerConfig(Mode mode)
+    public Result<ServerConfig, string> GetPreferredServerConfig(Mode mode)
     {
-        if (mode == Mode.Distributed &&
-            (_config.ExternalServer is not null || _config.ExternalServers.Count >= 1))
+        if (mode == Mode.Distributed && _config.ExternalServers.Count >= 1 &&
+            _config.ExternalServers.Any(s => s.Id == _config.SelectedExternalServer))
         {
-            return _config.ExternalServer ?? _config.ExternalServers.First();
+            return new Result<ServerConfig, string>.Ok(
+                _config.ExternalServers.First(s => s.Id == _config.SelectedExternalServer));
         }
 
-        return new ServerConfig
+        if (mode == Mode.Local)
         {
-            Name = "local",
-            Host = _globalConfig.ServerHost,
-            Port = _globalConfig.ServerPort
-        };
+            return new Result<ServerConfig, string>.Ok(new ServerConfig
+            {
+                Name = "local",
+                Uri = new Uri($"http://{_globalConfig.ServerHost}:{_globalConfig.ServerPort}"),
+                Id = ServerId.From(Guid.NewGuid()),
+                UriStatus = UriStatus.Reachable
+            });
+        }
+
+        return new Result<ServerConfig, string>.Err(
+            $"Invalid config, preferred server could not be determined. Either use local mode or set {nameof(_config.SelectedExternalServer)} to an ID of the {nameof(_config.ExternalServers)} list entry.");
     }
 
     public void SaveMinimalUserCount(ushort minimalUserCount)
@@ -205,11 +215,30 @@ public class LocalConfigService
         Task.Run(() => WriteConfigFile(_config));
     }
 
-    public void AddExternalServer(ServerConfig serverConfig)
+    public async Task AddExternalServer(ServerConfig serverConfig, bool setAsDefault)
     {
         if (_config.ExternalServers.Contains(serverConfig))
             return;
         _config.ExternalServers.Add(serverConfig);
+        if (setAsDefault)
+        {
+            _config.SelectedExternalServer = serverConfig.Id;
+        }
+
+        await WriteConfigFile(_config);
+    }
+
+    public void RemoveExternalServer(ServerConfig serverConfig)
+    {
+        _config.ExternalServers.Remove(serverConfig);
+        Task.Run(() => WriteConfigFile(_config));
+    }
+
+    public void SetServerConfigInUse(ServerConfig? serverConfig)
+    {
+        if (_config.SelectedExternalServer == serverConfig?.Id)
+            return;
+        _config.SelectedExternalServer = serverConfig?.Id;
         Task.Run(() => WriteConfigFile(_config));
     }
 
@@ -231,11 +260,6 @@ public class LocalConfigService
     public ushort GetMinimalUserCount()
     {
         return _config.MinimalUserCount;
-    }
-
-    public ServerConfig? GetExternalServer()
-    {
-        return _config.ExternalServer;
     }
 
     public List<ServerConfig> GetExternalServers()

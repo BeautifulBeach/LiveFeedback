@@ -77,7 +77,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     public void LaunchSettingsWindow()
     {
-        SettingsWindow window = Program.Services.GetRequiredService<SettingsWindow>();
+        var window = Program.Services.GetRequiredService<SettingsWindow>();
         window.DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>();
         window.Show();
     }

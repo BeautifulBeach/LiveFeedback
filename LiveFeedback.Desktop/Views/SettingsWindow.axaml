@@ -2,18 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:LiveFeedback.ViewModels"
-        xmlns:conv="using:LiveFeedback.Converters"
         xmlns:sharedEnums="using:LiveFeedback.Shared.Enums"
+        xmlns:viewModels="clr-namespace:LiveFeedback.ViewModels"
+        xmlns:converters="clr-namespace:LiveFeedback.Converters"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="LiveFeedback.Views.SettingsWindow"
-        x:DataType="vm:SettingsWindowViewModel"
+        x:DataType="viewModels:SettingsWindowViewModel"
         Title="Einstellungen"
         Width="1000"
         Height="650">
 
     <Window.Resources>
-        <conv:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <converters:UriStatusToColorConverter x:Key="UriStatusToColorConverter" />
     </Window.Resources>
 
     <Grid RowDefinitions="Auto, *">
@@ -32,7 +33,7 @@
                                         Spacing="20">
                                 <RadioButton Content="integriert" GroupName="mode"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Local}}" />
-                                <RadioButton Content="extern" GroupName="mode" IsEnabled="{Binding ExternalServersAvailable}"
+                                <RadioButton Content="extern" GroupName="mode"
                                              IsChecked="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}" />
                             </StackPanel>
 
@@ -40,39 +41,96 @@
                                     IsVisible="{Binding AppState.Mode, Converter={StaticResource EnumToBoolConverter}, ConverterParameter={x:Static sharedEnums:Mode.Distributed}}"
                                     Margin="0,20,0,0">
 
-                                <Grid ColumnDefinitions="Auto, *, Auto">
-                                    <TextBlock Text="Verwendeter externer Server:" />
-                                    <ComboBox Grid.Column="2" ItemsSource="{Binding ExternalServers}"
-                                              SelectedItem="{Binding AppState.CurrentServer}">
-                                        <ComboBox.ItemTemplate>
+                                <!-- Settings for external servers -->
+                                <Grid RowDefinitions="Auto, *, Auto, Auto">
+                                    <Grid ColumnDefinitions="Auto, *, Auto" HorizontalAlignment="Stretch">
+                                        <TextBlock Grid.Column="0" Text="Externe Server:" Classes="h2" Width="" />
+                                        <Button Command="{Binding StartAddingExternalServer}" Width="30" Height="30"
+                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                FontWeight="Bold"
+                                                FontSize="16"
+                                                Padding="0"
+                                                Grid.Column="2"
+                                                Content="+" />
+                                    </Grid>
+
+                                    <!-- List of external servers, option to remove them and see whether they are reachable -->
+                                    <ListBox Grid.Row="1" ItemsSource="{Binding AppState.ExternalServers}"
+                                             SelectionMode="AlwaysSelected" CornerRadius="4"
+                                             SelectedItem="{Binding AppState.SelectedExternalServer}">
+                                        <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock Text="{Binding Host}" />
+                                                <Border CornerRadius="4" Padding="4">
+                                                    <Grid ColumnDefinitions="Auto, Auto, *, Auto, Auto"
+                                                          VerticalAlignment="Center"
+                                                          ColumnSpacing="10">
+                                                        <TextBlock Grid.Column="0" Text="{Binding NameUriCombination}"
+                                                                   VerticalAlignment="Center" />
+                                                        <Button Grid.Column="1" Background="Transparent" Height="30"
+                                                                Command="{Binding $parent[ListBox].DataContext.CopyUriToClipboardCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Width="30" Padding="0">
+                                                            <Svg Path="/Assets/copy.dark.svg" />
+                                                        </Button>
+                                                        <Ellipse Grid.Column="3" Width="15" Height="15"
+                                                                 Fill="{Binding UriStatus, Converter={StaticResource UriStatusToColorConverter}}" />
+                                                        <Button Grid.Column="4"
+                                                                Command="{Binding  $parent[ListBox].DataContext.DeleteExternalServerCommand}"
+                                                                CommandParameter="{Binding}" Width="30"
+                                                                Height="30" Padding="0" Background="Transparent">
+                                                            <Svg Path="/Assets/trash.dark.svg" />
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
                                             </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Section for adding new external servers -->
+                                    <Grid IsVisible="{Binding AddingExternalServer}" Grid.Row="2" ColumnSpacing="10"
+                                          Margin="0,20,0,0"
+                                          ColumnDefinitions="Auto, *, Auto , Auto, Auto">
+                                        <TextBox Grid.Column="0" Text="{Binding NewServerName}"
+                                                 MinWidth="250"
+                                                 PlaceholderText="Name (optional)" />
+
+                                        <TextBox Grid.Column="1" Text="{Binding NewServerUrl}"
+                                                 PlaceholderText="http://example.com:1234" />
+                                        <Ellipse Grid.Column="2" Width="15" Height="15"
+                                                 Fill="{Binding NewServerUriStatus, Converter={StaticResource UriStatusToColorConverter}}" />
+                                        <Button Grid.Column="3" Command="{Binding AddExternalServer}"
+                                                Content="Hinzufügen" Background="DodgerBlue" />
+                                        <Button Grid.Column="4" Width="30" Height="30" CornerRadius="50"
+                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                FontWeight="Bold"
+                                                FontSize="16"
+                                                Padding="0"
+                                                Command="{Binding StopAddingExternalServer}">
+                                            ×
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Color explanation -->
+                                    <Grid Grid.Row="3" ColumnDefinitions="Auto, Auto, Auto" ColumnSpacing="10"
+                                          Margin="0, 20, 0, 0"
+                                          HorizontalAlignment="Center">
+                                        <Grid Grid.Column="0" ColumnDefinitions="Auto, Auto">
+                                            <Ellipse Grid.Column="0" Fill="Red" Width="15" Height="15" />
+                                            <TextBlock Grid.Column="1" Text="ungültige URL" Margin="7, 0, 7, 0" />
+                                        </Grid>
+                                        <Grid Grid.Column="1" ColumnDefinitions="Auto, Auto">
+                                            <Ellipse Grid.Column="0" Fill="DodgerBlue" Width="15" Height="15" />
+                                            <TextBlock Grid.Column="1" Text="gültige URL" Margin="7, 0, 7, 0" />
+                                        </Grid>
+                                        <Grid Grid.Column="2" ColumnDefinitions="Auto, Auto">
+                                            <Ellipse Grid.Column="0" Fill="Green" Width="15" Height="15" />
+                                            <TextBlock Grid.Column="1" Text="gültig und erreichbar" Margin="7, 0, 0, 0" />
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
                             </Border>
                         </Grid>
                     </Border>
-
-                </Grid>
-
-                <!-- Settings for external servers -->
-                <Grid Grid.Row="1" RowDefinitions="Auto, *" Classes="section">
-                    <TextBlock Text="Externe Server:" Classes="h2" />
-                    <DataGrid Classes="section" Grid.Row="1" MaxWidth="960"
-                              ItemsSource="{Binding  ExternalServers, Mode=TwoWay}"
-                              AutoGenerateColumns="False"
-                              Background="#3e3e3e"
-                              CornerRadius="5"
-                              CanUserResizeColumns="True">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Server-Name (optional)" Binding="{Binding Name}" Width="Auto"
-                                                MinWidth="180" />
-                            <DataGridTextColumn Header="Host" Binding="{Binding Host}" Width="*" />
-                            <DataGridTextColumn Header="Port" Binding="{Binding Port}" Width="Auto" MinWidth="125" />
-                        </DataGrid.Columns>
-                    </DataGrid>
                 </Grid>
             </Grid>
         </ScrollViewer>

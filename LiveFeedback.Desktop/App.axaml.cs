@@ -1,9 +1,7 @@
-using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;

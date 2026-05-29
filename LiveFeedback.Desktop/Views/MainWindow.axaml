@@ -49,7 +49,7 @@
                                CornerRadius="5"
                                Width="500"
                                Height="500" />
-                    <Button Classes="hyperlink" Content="{Binding AppState.CurrentServer.Url}"
+                    <Button Classes="hyperlink" Content="{Binding AppState.CurrentServer.Uri}"
                             Command="{Binding OpenInBrowser}"
                             Foreground="White"
                             HorizontalAlignment="Center"
@@ -145,15 +145,20 @@
         <!-- Lower part, fixed -->
         <Border Grid.Row="1" Classes="section" HorizontalAlignment="Stretch" VerticalAlignment="Center" Padding="10"
                 Margin="20" CornerRadius="5">
-            <Grid ColumnDefinitions="Auto, *, Auto">
+            <Grid ColumnDefinitions="Auto, Auto, *, Auto">
                 <Button Background="Transparent" Command="{Binding LaunchSettingsWindow}">
                     <Svg Path="/Assets/more_horizon.svg" MaxWidth="35" MaxHeight="35" />
                 </Button>
 
-                <Border Grid.Column="2" CornerRadius="5" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Grid.Column="1" Text="{Binding AppState.StartConditionsInfoText}" VerticalAlignment="Center"
+                           Foreground="Red"
+                           Margin="30, 0,0,0" />
+                
+                <Border Grid.Column="3" CornerRadius="5" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button
                         Content="{Binding AppState.ServerState,
-                    Converter={StaticResource ServerStateConverter}}"
+                        Converter={StaticResource ServerStateConverter}}"
+                        IsEnabled="{Binding AppState.StartConditionsFulfilled}"
                         Command="{Binding ToggleServerState}" HorizontalAlignment="Center" VerticalAlignment="Center"
                         Background="{DynamicResource SystemAccentColor}"
                         CornerRadius="5"

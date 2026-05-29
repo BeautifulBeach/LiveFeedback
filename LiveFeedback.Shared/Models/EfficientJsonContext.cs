@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using LiveFeedback_Shared;
 
 namespace LiveFeedback.Shared.Models;
 
@@ -10,4 +11,5 @@ namespace LiveFeedback.Shared.Models;
 [JsonSerializable(typeof(MessageCarrier<ushort>))]
 [JsonSerializable(typeof(RatingMessage<ushort>))]
 [JsonSerializable(typeof(Task))]
+[JsonSourceGenerationOptions(Converters = [typeof(VogenTypesFactory)])]
 public partial class EfficientJsonContext : JsonSerializerContext;
