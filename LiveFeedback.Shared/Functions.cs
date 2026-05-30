@@ -1,11 +1,16 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using LiveFeedback.Shared.Enums;
+using LiveFeedback.Shared.Records;
+using Environment = System.Environment;
 
 namespace LiveFeedback.Shared;
 
 public class Functions
 {
+    private static readonly HttpClient Client = new();
+    
     public static string EnvOrDefault(string envName, string defaultValue)
     {
         return Environment.GetEnvironmentVariable(envName)?.Trim() ?? defaultValue;
@@ -32,7 +37,7 @@ public class Functions
         {
             return possibleAbsolutePath;
         }
-        
+
         string mode = EnvOrDefault(Constants.ModeEnvName, "local");
         if (mode == "local")
         {
@@ -110,5 +115,56 @@ public class Functions
 
         // Fallback: return the string representation of the local IP.
         return localIp.ToString();
+    }
+
+    public static async Task<UriStatus> GetUriStatus(string? uri)
+    {
+        Result<Uri, string> result = ParseUri(uri);
+
+        switch (result)
+        {
+            case Result<Uri, string>.Ok(var validUri):
+                bool reachable = await IsReachable(validUri);
+                return reachable ? UriStatus.Reachable : UriStatus.Valid;
+            default:
+                return UriStatus.Invalid;
+        }
+    }
+    
+    public static async Task<bool> IsReachable(Uri uri)
+    {
+        // TODO: Bad error handling practice
+        try
+        {
+            HttpResponseMessage res =
+                await Client.GetAsync($"{uri}api/hello", HttpCompletionOption.ResponseContentRead);
+            if (!res.EnsureSuccessStatusCode().IsSuccessStatusCode)
+                return false;
+
+            string body = await res.Content.ReadAsStringAsync();
+            return body == Constants.HelloMessage;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    
+    public static Result<Uri, string> ParseUri(string? uri)
+    {
+        try
+        {
+            if (Uri.TryCreate(uri, UriKind.Absolute, out Uri? validUri) &&
+                (validUri.Scheme == Uri.UriSchemeHttp || validUri.Scheme == Uri.UriSchemeHttps))
+            {
+                return new Result<Uri, string>.Ok(validUri);
+            }
+
+            return new Result<Uri, string>.Err("Invalid URI");
+        }
+        catch (Exception e)
+        {
+            return new Result<Uri, string>.Err(e.Message);
+        }
     }
 }

@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
+using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.Shared;
 using LiveFeedback.ViewModels;
@@ -15,7 +16,7 @@ namespace LiveFeedback;
 
 internal static class Program
 {
-    public static readonly IServiceProvider Services = ConfigureServices();
+    public static IServiceProvider Services { get; private set; } = null!;
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -23,8 +24,8 @@ internal static class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
-        await Services.GetRequiredService<LocalConfigService>().Setup();
-
+        DesktopProgramConfig initialConfig = await LocalConfigService.GetInitialConfig();
+        Services = ConfigureServices(initialConfig);
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }
@@ -39,16 +40,17 @@ internal static class Program
             .LogToTrace();
     }
 
-    private static ServiceProvider ConfigureServices()
+    private static ServiceProvider ConfigureServices(DesktopProgramConfig initialConfig)
     {
         GlobalConfig globalConfig = new();
         ServiceCollection services = [];
-        services.AddSingleton(globalConfig);
+        services.AddSingleton(initialConfig);
         services.AddLogging(builder =>
         {
             builder.AddConsole();
             builder.SetMinimumLevel(LogLevel.Information);
         });
+        services.AddSingleton(globalConfig);
         services.AddSingleton<LocalConfigService>();
         services.AddSingleton<AppState>();
         services.AddSingleton<MainWindow>();

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Input.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,8 +16,7 @@ namespace LiveFeedback.ViewModels;
 public partial class SettingsWindowViewModel : ObservableObject
 {
     private readonly LocalConfigService _localConfigService;
-    private static readonly HttpClient Client = new();
-    private IClipboard _clipboard;
+    private readonly IClipboard _clipboard;
 
     [ObservableProperty] public partial AppState AppState { get; set; }
 
@@ -30,12 +28,11 @@ public partial class SettingsWindowViewModel : ObservableObject
 
     [ObservableProperty] public partial UriStatus NewServerUriStatus { get; set; } = UriStatus.Invalid;
 
-    public SettingsWindowViewModel(AppState appState, LocalConfigService localConfigService, GlobalConfig globalConfig,
+    public SettingsWindowViewModel(AppState appState, LocalConfigService localConfigService,
         IClipboard clipboard)
     {
         AppState = appState;
         _localConfigService = localConfigService;
-        Task.Run(InitializeAsync).Wait();
         _clipboard = clipboard;
     }
 
@@ -48,8 +45,8 @@ public partial class SettingsWindowViewModel : ObservableObject
     [RelayCommand]
     public async Task AddExternalServer()
     {
-        Task<UriStatus> uriStatusTask = GetUriStatus(NewServerUrl);
-        if (ParseUri(NewServerUrl).IsErr)
+        Task<UriStatus> uriStatusTask = Functions.GetUriStatus(NewServerUrl);
+        if (Functions.ParseUri(NewServerUrl).IsErr)
             return;
         
         var serverConfig = new ServerConfig
@@ -71,12 +68,12 @@ public partial class SettingsWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeleteExternalServer(ServerConfig serverConfig)
+    private async Task DeleteExternalServer(ServerConfig serverConfig)
     {
         AppState.ExternalServers.Remove(serverConfig);
         if (AppState.ExternalServers.Count == 0)
         {
-            _localConfigService.RemoveExternalServer(serverConfig);
+            await _localConfigService.RemoveExternalServer(serverConfig);
             return;
         }
 
@@ -87,7 +84,7 @@ public partial class SettingsWindowViewModel : ObservableObject
         ];
 
         AppState.SelectedExternalServer = nextBestServerList.First();
-        _localConfigService.RemoveExternalServer(serverConfig);
+        await _localConfigService.RemoveExternalServer(serverConfig);
     }
 
     [RelayCommand]
@@ -101,83 +98,14 @@ public partial class SettingsWindowViewModel : ObservableObject
         NewServerName = string.Empty;
         NewServerUrl = string.Empty;
     }
-
-    private async Task InitializeAsync()
-    {
-        await UpdateExternalServersUriStatus();
-    }
-
-    public async Task UpdateExternalServersUriStatus()
-    {
-        UriStatus[] uriStatuses =
-            await Task.WhenAll(AppState.ExternalServers.Select(s => GetUriStatus(s.Uri.ToString())));
-        for (var i = 0; i < AppState.ExternalServers.Count; i++)
-        {
-            ServerConfig targetValue = AppState.ExternalServers[i];
-            targetValue.UriStatus = uriStatuses[i];
-            AppState.ExternalServers[i] = targetValue;
-        }
-    }
-
-    private static Result<Uri, string> ParseUri(string? uri)
-    {
-        try
-        {
-            if (Uri.TryCreate(uri, UriKind.Absolute, out Uri? validUri) &&
-                (validUri.Scheme == Uri.UriSchemeHttp || validUri.Scheme == Uri.UriSchemeHttps))
-            {
-                return new Result<Uri, string>.Ok(validUri);
-            }
-
-            return new Result<Uri, string>.Err("Invalid URI");
-        }
-        catch (Exception e)
-        {
-            return new Result<Uri, string>.Err(e.Message);
-        }
-    }
-
-    private static async Task<UriStatus> GetUriStatus(string? uri)
-    {
-        Result<Uri, string> result = ParseUri(uri);
-
-        switch (result)
-        {
-            case Result<Uri, string>.Ok(var validUri):
-                bool reachable = await IsReachable(validUri);
-                return reachable ? UriStatus.Reachable : UriStatus.Valid;
-            default:
-                return UriStatus.Invalid;
-        }
-    }
-
-    private static async Task<bool> IsReachable(Uri uri)
-    {
-        // TODO: Bad error handling practice
-        try
-        {
-            HttpResponseMessage res =
-                await Client.GetAsync($"{uri}api/hello", HttpCompletionOption.ResponseContentRead);
-            if (!res.EnsureSuccessStatusCode().IsSuccessStatusCode)
-                return false;
-
-            string body = await res.Content.ReadAsStringAsync();
-            return body == Constants.HelloMessage;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
     partial void OnNewServerUrlChanged(string? value)
     {
-        switch (ParseUri(value))
+        switch (Functions.ParseUri(value))
         {
             case Result<Uri, string>.Ok(var validUri):
                 Task.Run(async () =>
                 {
-                    bool reachable = await IsReachable(validUri);
+                    bool reachable = await Functions.IsReachable(validUri);
                     NewServerUriStatus = reachable ? UriStatus.Reachable : UriStatus.Valid;
                 });
                 break;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
 using LiveFeedback.Shared.Models;
@@ -22,7 +23,9 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly OverlayWindowService _overlayWindowService;
     private readonly ILogger<App> _logger;
     private readonly LocalConfigService _localConfigService = Program.Services.GetRequiredService<LocalConfigService>();
+    private readonly DesktopProgramConfig _initialConfig = Program.Services.GetRequiredService<DesktopProgramConfig>();
     private readonly SignalRService _signalRService;
+    private readonly bool _isInitialized;
 
     public MainWindowViewModel(ServerService serverService, SignalRService signalRService,
         AppState appState,
@@ -33,9 +36,10 @@ public partial class MainWindowViewModel : ObservableObject
         _serverService = serverService;
         _overlayWindowService = overlayWindowService;
         _logger = logger;
-        Room = _localConfigService.GetRoom();
-        EventName = _localConfigService.GetEventName();
+        Room = _initialConfig.Room;
+        EventName = _initialConfig.EventName;
         _signalRService = signalRService;
+        _isInitialized = true;
     }
 
     [ObservableProperty] public partial string Room { get; set; }
@@ -75,10 +79,12 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
     public void LaunchSettingsWindow()
     {
         var window = Program.Services.GetRequiredService<SettingsWindow>();
         window.DataContext = Program.Services.GetRequiredService<SettingsWindowViewModel>();
+        Task.Run(AppState.UpdateExternalServersUriStatus);
         window.Show();
     }
 
@@ -94,15 +100,19 @@ public partial class MainWindowViewModel : ObservableObject
 
     partial void OnRoomChanged(string value)
     {
-        _localConfigService.SaveRoomName(value);
         AppState.CurrentLecture.Room = value;
+        if (!_isInitialized)
+            return;
+        Task.Run(() => _localConfigService.SaveRoomName(value));
         Task.Run(() => _signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
     }
 
     partial void OnEventNameChanged(string value)
     {
-        _localConfigService.SaveEventName(value);
         AppState.CurrentLecture.Name = value;
+        if (!_isInitialized)
+            return;
+        Task.Run(() => _localConfigService.SaveEventName(value));
         Task.Run(() => _signalRService.UpdateLectureMetadata(AppState.CurrentLecture));
     }
 }

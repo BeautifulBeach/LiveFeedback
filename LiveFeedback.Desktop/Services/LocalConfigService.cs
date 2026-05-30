@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using FluentValidation.Results;
 using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
@@ -19,14 +16,12 @@ public class LocalConfigService
     private static readonly string ConfigDir = GetConfigDirectory();
     private static readonly string ConfigPath = Path.Combine(ConfigDir, "liveFeedbackConf.json");
     private readonly ILogger<App> _logger;
-    private readonly GlobalConfig _globalConfig;
-    private DesktopProgramConfig _config;
+    private readonly DesktopProgramConfig _config;
 
-    public LocalConfigService(ILogger<App> logger, GlobalConfig globalConfig)
+    public LocalConfigService(ILogger<App> logger, DesktopProgramConfig initialConfig)
     {
         _logger = logger;
-        _globalConfig = globalConfig;
-        _config = DefaultConfig();
+        _config = initialConfig;
         if (!Directory.Exists(ConfigDir))
         {
             Directory.CreateDirectory(ConfigDir);
@@ -40,44 +35,25 @@ public class LocalConfigService
         }
     }
 
-    public async Task Setup()
+    public static async Task<DesktopProgramConfig> GetInitialConfig()
     {
-        string? possibleData = await ReadConfigFile();
-        if (string.IsNullOrEmpty(possibleData))
+        string? configStr = await ReadConfigFile();
+        if (string.IsNullOrEmpty(configStr))
         {
-            _config = DefaultConfig();
-            await WriteConfigFile(_config);
-            _logger.LogInformation("Created default config file at {Path}", ConfigPath);
+            Console.WriteLine("No initial config file found, fallback to default config.");
+            return DefaultConfig();
         }
-        else
-        {
-            try
-            {
-                DesktopProgramConfig? untestedConfig =
-                    JsonSerializer.Deserialize<DesktopProgramConfig>(possibleData, JsonContext.Default.DesktopProgramConfig);
-                if (untestedConfig == null)
-                {
-                    throw new NullReferenceException($"{nameof(untestedConfig)} is null");
-                }
 
-                ValidationResult result = await new LocalConfigValidator().ValidateAsync(untestedConfig);
-                if (result.IsValid)
-                {
-                    _config = untestedConfig;
-                }
-                else
-                {
-                    _logger.LogWarning("Invalid config file: {EMessage}", result.Errors);
-                    _logger.LogWarning("Fallback to default config.");
-                    _config = DefaultConfig();
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Invalid config file: {EMessage}", e.Message);
-                Environment.Exit(1);
-            }
+        DesktopProgramConfig? config =
+            JsonSerializer.Deserialize<DesktopProgramConfig>(configStr, JsonContext.Default.DesktopProgramConfig);
+
+        if (config == null)
+        {
+            Console.WriteLine("Invalid config file, fallback to default config.");
+            return DefaultConfig();
         }
+
+        return config;
     }
 
     private static string GetConfigDirectory()
@@ -117,7 +93,7 @@ public class LocalConfigService
         };
     }
 
-    private async Task<string?> ReadConfigFile()
+    private static async Task<string?> ReadConfigFile()
     {
         try
         {
@@ -125,7 +101,7 @@ public class LocalConfigService
         }
         catch (Exception e)
         {
-            _logger.LogError("Failed to read local config file: {Error}", e.Message);
+            Console.WriteLine("Failed to read local config file: {0}", e.Message);
             return null;
         }
     }
@@ -143,76 +119,63 @@ public class LocalConfigService
         }
     }
 
-    public Result<ServerConfig, string> GetPreferredServerConfig(Mode mode)
+    public static ServerConfig GetInternalServerConfig(GlobalConfig globalConfig)
     {
-        if (mode == Mode.Distributed && _config.ExternalServers.Count >= 1 &&
-            _config.ExternalServers.Any(s => s.Id == _config.SelectedExternalServer))
+        return new ServerConfig
         {
-            return new Result<ServerConfig, string>.Ok(
-                _config.ExternalServers.First(s => s.Id == _config.SelectedExternalServer));
-        }
-
-        if (mode == Mode.Local)
-        {
-            return new Result<ServerConfig, string>.Ok(new ServerConfig
-            {
-                Name = "local",
-                Uri = new Uri($"http://{_globalConfig.ServerHost}:{_globalConfig.ServerPort}"),
-                Id = ServerId.From(Guid.NewGuid()),
-                UriStatus = UriStatus.Reachable
-            });
-        }
-
-        return new Result<ServerConfig, string>.Err(
-            $"Invalid config, preferred server could not be determined. Either use local mode or set {nameof(_config.SelectedExternalServer)} to an ID of the {nameof(_config.ExternalServers)} list entry.");
+            Name = "local",
+            Uri = new Uri($"http://{globalConfig.ServerHost}:{globalConfig.ServerPort}"),
+            Id = ServerId.From(Guid.NewGuid()),
+            UriStatus = UriStatus.Reachable
+        };
     }
 
-    public void SaveMinimalUserCount(ushort minimalUserCount)
+    public async Task SaveMinimalUserCount(ushort minimalUserCount)
     {
         if (_config.MinimalUserCount == minimalUserCount)
             return;
         _config.MinimalUserCount = minimalUserCount;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SaveSensitivity(Sensitivity sensitivity)
+    public async Task SaveSensitivity(Sensitivity sensitivity)
     {
         if (_config.Sensitivity == sensitivity)
             return;
         _config.Sensitivity = sensitivity;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SaveMode(Mode mode)
+    public async Task SaveMode(Mode mode)
     {
         if (_config.Mode == mode)
             return;
         _config.Mode = mode;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SaveOverlayPosition(OverlayPosition overlayPosition)
+    public async Task SaveOverlayPosition(OverlayPosition overlayPosition)
     {
         if (_config.OverlayPosition == overlayPosition)
             return;
         _config.OverlayPosition = overlayPosition;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SaveRoomName(string room)
+    public async Task SaveRoomName(string room)
     {
         if (_config.Room == room)
             return;
         _config.Room = room;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SaveEventName(string eventName)
+    public async Task SaveEventName(string eventName)
     {
         if (_config.EventName == eventName)
             return;
         _config.EventName = eventName;
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
     public async Task AddExternalServer(ServerConfig serverConfig, bool setAsDefault)
@@ -228,52 +191,17 @@ public class LocalConfigService
         await WriteConfigFile(_config);
     }
 
-    public void RemoveExternalServer(ServerConfig serverConfig)
+    public async Task RemoveExternalServer(ServerConfig serverConfig)
     {
         _config.ExternalServers.Remove(serverConfig);
-        Task.Run(() => WriteConfigFile(_config));
+        await WriteConfigFile(_config);
     }
 
-    public void SetServerConfigInUse(ServerConfig? serverConfig)
+    public async Task SetServerConfigInUse(ServerConfig? serverConfig)
     {
         if (_config.SelectedExternalServer == serverConfig?.Id)
             return;
         _config.SelectedExternalServer = serverConfig?.Id;
-        Task.Run(() => WriteConfigFile(_config));
-    }
-
-    public OverlayPosition GetOverlayPosition()
-    {
-        return _config.OverlayPosition;
-    }
-
-    public Sensitivity GetSensitivity()
-    {
-        return _config.Sensitivity;
-    }
-
-    public Mode GetMode()
-    {
-        return _config.Mode;
-    }
-
-    public ushort GetMinimalUserCount()
-    {
-        return _config.MinimalUserCount;
-    }
-
-    public List<ServerConfig> GetExternalServers()
-    {
-        return _config.ExternalServers;
-    }
-
-    public string GetRoom()
-    {
-        return _config.Room;
-    }
-
-    public string GetEventName()
-    {
-        return _config.EventName;
+        await WriteConfigFile(_config);
     }
 }

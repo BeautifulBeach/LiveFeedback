@@ -1,5 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LiveFeedback.Models;
 using LiveFeedback.Services;
 
@@ -13,14 +15,11 @@ public partial class PositionSelectorViewModel : ObservableObject
 
     [ObservableProperty] public partial string BlBtnColor { get; set; }
 
-    [ObservableProperty]
-    public partial string BrBtnColor { get; set; }
+    [ObservableProperty] public partial string BrBtnColor { get; set; }
 
-    [ObservableProperty]
-    public partial string TlBtnColor { get; set; }
+    [ObservableProperty] public partial string TlBtnColor { get; set; }
 
-    [ObservableProperty]
-    public partial string TrBtnColor { get; set; }
+    [ObservableProperty] public partial string TrBtnColor { get; set; }
 
     public PositionSelectorViewModel(AppState appState, LocalConfigService localConfigService)
     {
@@ -32,7 +31,8 @@ public partial class PositionSelectorViewModel : ObservableObject
         BlBtnColor = BtnColor("bl");
     }
 
-    public void SelectCornerCommand(string corner)
+    [RelayCommand]
+    public async Task SelectCorner(string corner)
     {
         DeactivateAnyButton();
         switch (corner)
@@ -56,7 +56,8 @@ public partial class PositionSelectorViewModel : ObservableObject
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        _localConfigService.SaveOverlayPosition(AppState.OverlayPosition);
+
+        await _localConfigService.SaveOverlayPosition(AppState.OverlayPosition);
     }
 
     private void DeactivateAnyButton()

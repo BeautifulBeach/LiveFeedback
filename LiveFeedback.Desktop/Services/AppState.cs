@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LiveFeedback.Core;
 using LiveFeedback.Models;
 using LiveFeedback.Shared;
 using LiveFeedback.Shared.Enums;
 using LiveFeedback.Shared.Models;
-using LiveFeedback.Shared.Records;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LiveFeedback.Services;
@@ -19,26 +19,31 @@ public partial class AppState : ObservableObject
 
     private static readonly GlobalConfig GlobalConfig = Program.Services.GetRequiredService<GlobalConfig>();
 
+    private static readonly DesktopProgramConfig InitialConfig =
+        Program.Services.GetRequiredService<DesktopProgramConfig>();
+
+    private readonly bool _isInitialized;
+
     public AppState()
     {
-        CurrentServer = LocalConfigService.GetPreferredServerConfig(Mode) switch
-        {
-            Result<ServerConfig, string>.Ok(var value) => value,
-            _ => throw new Exception("The program has been configured incorrectly.")
-        };
-        ExternalServers = [..LocalConfigService.GetExternalServers()];
+        CurrentServer = InitialConfig.Mode == Mode.Local
+            ? LocalConfigService.GetInternalServerConfig(GlobalConfig)
+            : InitialConfig.ExternalServers.FirstOrDefault(s => s.Id == InitialConfig.SelectedExternalServer);
+        ExternalServers = [..InitialConfig.ExternalServers];
+        UpdateExternalServersUriStatus().GetAwaiter().GetResult();
         EnoughParticipants = CurrentUserCount() >= MinimalUserCount;
         StartConditions = GetCurrentStartConditions();
         StartConditionsFulfilled = StartConditions == StartConditions.Fulfilled;
         SelectedExternalServer = CurrentServer; // TODO: Duplication?
         FrontenUrl = GetCurrentFrontendUri();
+        _isInitialized = true;
     }
 
     [ObservableProperty]
     public partial Lecture CurrentLecture { get; set; } = new()
     {
-        Name = LocalConfigService.GetEventName(),
-        Room = LocalConfigService.GetRoom()
+        Name = InitialConfig.EventName,
+        Room = InitialConfig.Room
     };
 
     [ObservableProperty] public partial string ClientId { get; set; } = "";
@@ -54,20 +59,17 @@ public partial class AppState : ObservableObject
     [ObservableProperty] public partial ServerState ServerState { get; set; } = ServerState.Stopped;
 
 
-    [ObservableProperty]
-    public partial OverlayPosition OverlayPosition { get; set; } = LocalConfigService.GetOverlayPosition();
+    [ObservableProperty] public partial OverlayPosition OverlayPosition { get; set; } = InitialConfig.OverlayPosition;
 
-    [ObservableProperty] public partial Sensitivity Sensitivity { get; set; } = LocalConfigService.GetSensitivity();
+    [ObservableProperty] public partial Sensitivity Sensitivity { get; set; } = InitialConfig.Sensitivity;
 
-    [ObservableProperty] public partial Mode Mode { get; set; } = LocalConfigService.GetMode();
+    [ObservableProperty] public partial Mode Mode { get; set; } = InitialConfig.Mode;
 
-    [ObservableProperty]
-    public partial bool IsDistributedMode { get; set; } = LocalConfigService.GetMode() == Mode.Distributed;
+    [ObservableProperty] public partial bool IsDistributedMode { get; set; } = InitialConfig.Mode == Mode.Distributed;
 
-    [ObservableProperty]
-    public partial ushort MinimalUserCount { get; set; } = LocalConfigService.GetMinimalUserCount();
+    [ObservableProperty] public partial ushort MinimalUserCount { get; set; } = InitialConfig.MinimalUserCount;
 
-    [ObservableProperty] public partial ServerConfig CurrentServer { get; set; }
+    [ObservableProperty] public partial ServerConfig? CurrentServer { get; set; }
 
     [ObservableProperty] public partial string FrontenUrl { get; set; }
 
@@ -97,10 +99,22 @@ public partial class AppState : ObservableObject
         if (ExternalServers.All(s => s.UriStatus != UriStatus.Reachable))
             return StartConditions.AllServersNotReachable;
         if (ExternalServers.ToList()
-                .Find(s => s.Id == CurrentServer.Id)?
+                .Find(s => s.Id == CurrentServer?.Id)?
                 .UriStatus != UriStatus.Reachable)
             return StartConditions.SelectedServerNotReachable;
         return StartConditions.Fulfilled;
+    }
+
+    public async Task UpdateExternalServersUriStatus()
+    {
+        UriStatus[] uriStatuses =
+            await Task.WhenAll(ExternalServers.Select(s => Functions.GetUriStatus(s.Uri.ToString())));
+        for (var i = 0; i < ExternalServers.Count; i++)
+        {
+            ServerConfig targetValue = ExternalServers[i];
+            targetValue.UriStatus = uriStatuses[i];
+            ExternalServers[i] = targetValue;
+        }
     }
 
     private string GetCurrentFrontendUri()
@@ -108,18 +122,15 @@ public partial class AppState : ObservableObject
         // TODO: TLS
         if (Mode == Mode.Local)
             return $"http://{GlobalConfig.ServerHost}:{GlobalConfig.ServerPort}";
-        
-        return LocalConfigService.GetPreferredServerConfig(Mode) switch
-        {
-            Result<ServerConfig, string>.Ok(var serverConfig) => serverConfig.Uri.ToString(),
-            Result<ServerConfig, string>.Err(var err) => throw new Exception(err)
-        };
+
+        return ExternalServers.FirstOrDefault(s => s.Id == SelectedExternalServer?.Id)?.Uri.ToString() ?? "";
     }
 
 
     partial void OnMinimalUserCountChanged(ushort value)
     {
-        LocalConfigService.SaveMinimalUserCount(value);
+        if (_isInitialized)
+            Task.Run(() => LocalConfigService.SaveMinimalUserCount(value));
         EnoughParticipants = CurrentUserCount() >= MinimalUserCount;
     }
 
@@ -127,22 +138,22 @@ public partial class AppState : ObservableObject
     {
         CurrentComprehensibility =
             Calculator.CalculateComprehensibilityWithSensitivity(CurrentComprehensibility, value);
-        LocalConfigService.SaveSensitivity(value);
+        if (_isInitialized)
+            Task.Run(() => LocalConfigService.SaveSensitivity(value));
     }
 
     partial void OnCurrentLectureChanged(Lecture value)
     {
-        FrontenUrl = $"{CurrentServer.Uri}lecture/{value.Id}";
+        FrontenUrl = $"{CurrentServer?.Uri}lecture/{value.Id}";
     }
 
     partial void OnModeChanged(Mode value)
     {
-        CurrentServer = LocalConfigService.GetPreferredServerConfig(value) switch
-        {
-            Result<ServerConfig, string>.Ok(var serverConfig) => serverConfig,
-            _ => CurrentServer // TODO: Silent error in case of invalid config. The server stays the same although the user expected a change!
-        };
-        LocalConfigService.SaveMode(value);
+        CurrentServer = value == Mode.Local
+            ? LocalConfigService.GetInternalServerConfig(GlobalConfig)
+            : ExternalServers.FirstOrDefault(s => s.Id == SelectedExternalServer?.Id);
+        if (_isInitialized)
+            Task.Run(() => LocalConfigService.SaveMode(value));
         IsDistributedMode = value == Mode.Distributed;
         StartConditions = GetCurrentStartConditions();
     }
@@ -165,7 +176,8 @@ public partial class AppState : ObservableObject
         if (oldValue?.Id == newValue?.Id)
             return;
 
-        LocalConfigService.SetServerConfigInUse(newValue);
+        if (_isInitialized)
+            Task.Run(() => LocalConfigService.SetServerConfigInUse(newValue));
         StartConditions = GetCurrentStartConditions();
     }
 
